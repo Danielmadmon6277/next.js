@@ -24,13 +24,15 @@ use next_core::tracing_presets::{
 };
 use once_cell::sync::Lazy;
 use rand::Rng;
-use tokio::{io::AsyncWriteExt, time::Instant};
-use tracing::Instrument;
+use tokio::{io::AsyncWriteExt, sync::broadcast, time::Instant};
+use tracing::{event, Instrument};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Registry};
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
-    get_effects, Completion, Effects, FxIndexSet, OperationVc, ReadRef, ResolvedVc,
-    TransientInstance, TryJoinIterExt, UpdateInfo, Vc,
+    get_effects,
+    message_queue::{CompilationEvent, Severity},
+    Completion, Effects, FxIndexSet, OperationVc, ReadRef, ResolvedVc, TransientInstance,
+    TryJoinIterExt, TurboTasks, UpdateInfo, Vc,
 };
 use turbo_tasks_fs::{
     get_relative_path_to, util::uri_from_file, DiskFileSystem, FileContent, FileSystem,
@@ -309,6 +311,27 @@ pub struct ProjectInstance {
     exit_receiver: tokio::sync::Mutex<Option<ExitReceiver>>,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+struct DiagnosticEvent(String);
+
+impl CompilationEvent for DiagnosticEvent {
+    fn type_name(&self) -> &'static str {
+        "DiagnosticEvent"
+    }
+
+    fn severity(&self) -> Severity {
+        Severity::Trace
+    }
+
+    fn message(&self) -> String {
+        self.0.clone()
+    }
+
+    fn to_json(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
 #[napi(ts_return_type = "Promise<{ __napiType: \"Project\" }>")]
 pub async fn project_new(
     options: NapiProjectOptions,
@@ -402,6 +425,11 @@ pub async fn project_new(
         memory_limit,
         dependency_tracking,
     )?;
+
+    turbo_tasks.send_compilation_event(Arc::new(DiagnosticEvent(
+        "Starting the compilation events server...".into(),
+    )));
+
     let stats_path = std::env::var_os("NEXT_TURBOPACK_TASK_STATISTICS");
     if let Some(stats_path) = stats_path {
         let task_stats = turbo_tasks.task_statistics().enable().clone();
@@ -429,8 +457,9 @@ pub async fn project_new(
         .await
         .map_err(|e| napi::Error::from_reason(PrettyPrintError(&e).to_string()))?;
 
+    let tasks_ref = turbo_tasks.clone();
     turbo_tasks.spawn_once_task(async move {
-        benchmark_file_io(container.project().node_root())
+        benchmark_file_io(tasks_ref, container.project().node_root())
             .await
             .inspect_err(|err| tracing::warn!(%err, "failed to benchmark file IO"))
     });
@@ -444,6 +473,35 @@ pub async fn project_new(
     ))
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+struct SlowFilesystemEvent {
+    directory: String,
+    duration: u128,
+}
+
+impl CompilationEvent for SlowFilesystemEvent {
+    fn type_name(&self) -> &'static str {
+        "SlowFilesystemEvent"
+    }
+
+    fn severity(&self) -> Severity {
+        Severity::Warning
+    }
+
+    fn message(&self) -> String {
+        format!(
+            "Slow filesystem detected. The benchmark took {}ms. If {} is a network drive, \
+             consider moving it to a local folder. If you have an antivirus enabled, consider \
+             excluding your project directory.",
+            self.duration, self.directory
+        )
+    }
+
+    fn to_json(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
 /// A very simple and low-overhead, but potentially noisy benchmark to detect
 /// very slow disk IO. Warns the user (via `println!`) if the benchmark takes
 /// more than `SLOW_FILESYSTEM_THRESHOLD`.
@@ -451,8 +509,11 @@ pub async fn project_new(
 /// This idea is copied from Bun:
 /// - https://x.com/jarredsumner/status/1637549427677364224
 /// - https://github.com/oven-sh/bun/blob/06a9aa80c38b08b3148bfeabe560/src/install/install.zig#L3038
-#[tracing::instrument]
-async fn benchmark_file_io(directory: Vc<FileSystemPath>) -> Result<Vc<Completion>> {
+#[tracing::instrument(skip(turbo_tasks))]
+async fn benchmark_file_io(
+    turbo_tasks: NextTurboTasks,
+    directory: Vc<FileSystemPath>,
+) -> Result<Vc<Completion>> {
     // try to get the real file path on disk so that we can use it with tokio
     let fs = Vc::try_resolve_downcast_type::<DiskFileSystem>(directory.fs())
         .await?
@@ -490,12 +551,20 @@ async fn benchmark_file_io(directory: Vc<FileSystemPath>) -> Result<Vc<Completio
     .instrument(tracing::info_span!("benchmark file IO (measurement)"))
     .await?;
 
-    if Instant::now().duration_since(start) > SLOW_FILESYSTEM_THRESHOLD {
+    let duration = Instant::now().duration_since(start);
+    if duration > SLOW_FILESYSTEM_THRESHOLD {
         println!(
-            "Slow filesystem detected. If {} is a network drive, consider moving it to a local \
-             folder. If you have an antivirus enabled, consider excluding your project directory.",
+            "Slow filesystem detected. The benchmark took {}ms. If {} is a network drive, \
+             consider moving it to a local folder. If you have an antivirus enabled, consider \
+             excluding your project directory.",
+            duration.as_millis(),
             directory.to_string_lossy(),
         );
+
+        turbo_tasks.send_compilation_event(Arc::new(SlowFilesystemEvent {
+            directory: directory.to_string_lossy().into(),
+            duration: duration.as_millis(),
+        }));
     }
 
     Ok(Completion::new())
@@ -1215,6 +1284,55 @@ pub fn project_update_info_subscribe(
                 let error = anyhow!("Error calling JS function: {}", status);
                 eprintln!("{}", error);
                 break;
+            }
+        }
+    });
+    Ok(())
+}
+
+/// Subscribes to all compilation events that are not cached like timing and progress information.
+#[napi]
+pub fn project_compilation_events_subscribe(
+    #[napi(ts_arg_type = "{ __napiType: \"Project\" }")] project: External<ProjectInstance>,
+    func: JsFunction,
+) -> napi::Result<()> {
+    let tsfn: ThreadsafeFunction<Arc<dyn CompilationEvent>> =
+        func.create_threadsafe_function(0, |ctx| {
+            let event: Arc<dyn CompilationEvent> = ctx.value;
+
+            let env = ctx.env;
+            let mut obj = env.create_object()?;
+            obj.set_named_property("typeName", event.type_name())?;
+            obj.set_named_property("severity", event.severity().to_string())?;
+            obj.set_named_property("message", event.message())?;
+
+            let external = env.create_external(event, None);
+            obj.set_named_property("eventData", external)?;
+
+            Ok(vec![obj])
+        })?;
+
+    let turbo_tasks = project.turbo_tasks.clone();
+    tokio::spawn(async move {
+        let mut receiver = turbo_tasks.get_compilation_events_stream();
+        loop {
+            match receiver.recv().await {
+                Ok(msg) => {
+                    let status = tsfn.call(
+                        Ok(msg),
+                        napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking,
+                    );
+
+                    if status != Status::Ok {
+                        break;
+                    }
+                }
+                Err(broadcast::error::RecvError::Closed) => {
+                    break;
+                }
+                Err(broadcast::error::RecvError::Lagged(n)) => {
+                    eprintln!("Message receiver lagged by {} messages", n);
+                }
             }
         }
     });

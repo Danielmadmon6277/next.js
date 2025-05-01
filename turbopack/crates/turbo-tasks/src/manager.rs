@@ -16,10 +16,10 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use auto_hash_map::AutoMap;
-use futures::FutureExt;
+use futures::{channel::mpsc::UnboundedReceiver, FutureExt};
 use rustc_hash::FxHasher;
 use serde::{Deserialize, Serialize};
-use tokio::{runtime::Handle, select, task_local};
+use tokio::{runtime::Handle, select, sync::broadcast::Receiver, task_local};
 use tokio_util::task::TaskTracker;
 use tracing::{info_span, instrument, trace_span, Instrument, Level, Span};
 use turbo_tasks_malloc::TurboMalloc;
@@ -34,6 +34,7 @@ use crate::{
     id::{BackendJobId, ExecutionId, FunctionId, LocalTaskId, TraitTypeId, TRANSIENT_TASK_BIT},
     id_factory::IdFactoryWithReuse,
     magic_any::MagicAny,
+    message_queue::{CompilationEvent, CompilationEventQueue},
     raw_vc::{CellId, RawVc},
     registry,
     serialization_invalidation::SerializationInvalidator,
@@ -380,6 +381,7 @@ pub struct TurboTasks<B: Backend + 'static> {
     event_foreground: Event,
     event_background: Event,
     program_start: Instant,
+    compilation_events: CompilationEventQueue,
 }
 
 /// Information about a non-local task. A non-local task can contain multiple "local" tasks, which
@@ -505,6 +507,7 @@ impl<B: Backend + 'static> TurboTasks<B> {
             event_foreground: Event::new(|| "TurboTasks::event_foreground".to_string()),
             event_background: Event::new(|| "TurboTasks::event_background".to_string()),
             program_start: Instant::now(),
+            compilation_events: CompilationEventQueue::default(),
         });
         this.backend.startup(&*this);
         this
@@ -1158,6 +1161,16 @@ impl<B: Backend + 'static> TurboTasks<B> {
 
     pub fn backend(&self) -> &B {
         &self.backend
+    }
+
+    pub fn subscribe_to_compilation_events(&self) -> Receiver<Arc<dyn CompilationEvent>> {
+        self.compilation_events.subscribe()
+    }
+
+    pub fn send_compilation_event(&self, event: Arc<dyn CompilationEvent>) {
+        if let Err(e) = self.compilation_events.send(event) {
+            tracing::warn!("Failed to send compilation event: {e}");
+        }
     }
 }
 

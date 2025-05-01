@@ -8,9 +8,11 @@ use napi::{
 };
 use rustc_hash::FxHashMap;
 use serde::Serialize;
+use tokio::sync::{broadcast::Receiver, mpsc::UnboundedReceiver};
 use turbo_tasks::{
-    get_effects, task_statistics::TaskStatisticsApi, trace::TraceRawVcs, Effects, OperationVc,
-    ReadRef, TaskId, TryJoinIterExt, TurboTasks, TurboTasksApi, UpdateInfo, Vc, VcValueType,
+    get_effects, message_queue::CompilationEvent, task_statistics::TaskStatisticsApi,
+    trace::TraceRawVcs, Effects, OperationVc, ReadRef, TaskId, TryJoinIterExt, TurboTasks,
+    TurboTasksApi, UpdateInfo, Vc, VcValueType,
 };
 use turbo_tasks_backend::{
     default_backing_storage, noop_backing_storage, DefaultBackingStorage, GitVersionInfo,
@@ -122,6 +124,24 @@ impl NextTurboTasks {
         match self {
             NextTurboTasks::Memory(turbo_tasks) => turbo_tasks.task_statistics(),
             NextTurboTasks::PersistentCaching(turbo_tasks) => turbo_tasks.task_statistics(),
+        }
+    }
+
+    pub fn get_compilation_events_stream(&self) -> Receiver<Arc<dyn CompilationEvent>> {
+        match self {
+            NextTurboTasks::Memory(turbo_tasks) => turbo_tasks.subscribe_to_compilation_events(),
+            NextTurboTasks::PersistentCaching(turbo_tasks) => {
+                turbo_tasks.subscribe_to_compilation_events()
+            }
+        }
+    }
+
+    pub fn send_compilation_event(&self, event: Arc<dyn CompilationEvent>) {
+        match self {
+            NextTurboTasks::Memory(turbo_tasks) => turbo_tasks.send_compilation_event(event),
+            NextTurboTasks::PersistentCaching(turbo_tasks) => {
+                turbo_tasks.send_compilation_event(event)
+            }
         }
     }
 }

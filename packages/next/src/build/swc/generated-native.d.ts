@@ -300,6 +300,11 @@ export declare function projectUpdateInfoSubscribe(
   aggregationMs: number,
   func: (...args: any[]) => any
 ): void
+/** Subscribes to all compilation events that are not cached like timing and progress information. */
+export declare function projectCompilationEventsSubscribe(
+  project: { __napiType: 'Project' },
+  func: (...args: any[]) => any
+): void
 export interface StackFrame {
   isServer: boolean
   isInternal?: boolean

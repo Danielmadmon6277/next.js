@@ -1182,7 +1182,19 @@ export async function createHotReloaderTurbopack(
     }
   }
 
+  async function handleProjectCompilationEvents() {
+    Log.event('Starting handleProjectCompilationEvents...')
+    for await (const event of project.compilationEventsSubscribe()) {
+      Log.event(event.message)
+    }
+  }
+
   handleProjectUpdates().catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
+
+  handleProjectCompilationEvents().catch((err) => {
     console.error(err)
     process.exit(1)
   })
