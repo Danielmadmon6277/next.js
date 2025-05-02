@@ -25,10 +25,10 @@ pub trait EcmascriptChunkPlaceable: ChunkableModule + Module + Asset {
         self: Vc<Self>,
         side_effect_free_packages: Vc<Glob>,
     ) -> Result<Vc<bool>> {
-        is_marked_as_side_effect_free(
+        Ok(is_marked_as_side_effect_free(
             (*self.ident().path().await?).clone(),
             side_effect_free_packages,
-        )
+        ))
     }
 }
 
@@ -152,7 +152,7 @@ impl Issue for SideEffectsInPackageJsonIssue {
 
     #[turbo_tasks::function]
     fn file_path(&self) -> Vc<FileSystemPath> {
-        *self.path
+        self.path.clone().cell()
     }
 
     #[turbo_tasks::function]
