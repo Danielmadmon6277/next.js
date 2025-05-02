@@ -190,8 +190,10 @@ async fn webpack_loaders_executor(
 ) -> Result<Vc<ProcessResult>> {
     Ok(evaluate_context.process(
         Vc::upcast(
-            FileSource::new((*embed_file_path("transforms/webpack-loaders.ts".into())).await?)
-                .clone(),
+            FileSource::new(
+                (*embed_file_path("transforms/webpack-loaders.ts".into()).await?).clone(),
+            )
+            .clone(),
         ),
         Value::new(ReferenceType::Internal(
             InnerAssets::empty().to_resolved().await?,
@@ -210,7 +212,7 @@ impl WebpackLoadersProcessedAsset {
             project_path,
             chunking_context,
             env,
-        } = *transform.execution_context.await?;
+        } = &*transform.execution_context.await?;
         let source_content = this.source.content();
         let AssetContent::File(file) = *source_content.await? else {
             bail!("Webpack Loaders transform only support transforming files");
@@ -253,7 +255,7 @@ impl WebpackLoadersProcessedAsset {
         let loaders = transform.loaders.await?;
         let config_value = evaluate_webpack_loader(WebpackLoaderContext {
             module_asset: webpack_loaders_executor,
-            cwd: project_path,
+            cwd: project_path.clone(),
             env,
             context_ident_for_issue: this.source.ident().to_resolved().await?,
             asset_context: evaluate_context,
@@ -513,14 +515,14 @@ impl EvaluateContext for WebpackLoaderContext {
                         // `dir_dependency` does but in a single traversal.
                         dir_dependency(
                             self.cwd
-                                .join(dir.clone())
+                                .join(dir.clone())?
                                 .read_glob(Glob::new(glob.clone()), false),
                         )
                     })
                     .try_join();
                 let build_paths = build_file_paths
                     .iter()
-                    .map(|path| self.cwd.join(path.clone()).to_resolved())
+                    .map(|path| async move { self.cwd.join(path.clone()) })
                     .try_join();
                 let (resolved_build_paths, ..) = try_join!(
                     build_paths,
