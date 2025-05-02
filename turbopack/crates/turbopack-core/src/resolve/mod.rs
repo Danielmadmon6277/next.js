@@ -2567,7 +2567,7 @@ async fn resolve_module_request(
     // module. This should match only using the exports field and no other
     // fields/fallbacks.
     if let FindSelfReferencePackageResult::Found { name, package_path } =
-        &*find_self_reference(lookup_path).await?
+        &*find_self_reference(lookup_path.clone()).await?
     {
         if name == module {
             let result = resolve_into_package(
@@ -2584,7 +2584,7 @@ async fn resolve_module_request(
     }
 
     let result = find_package(
-        lookup_path,
+        lookup_path.clone(),
         module.into(),
         resolve_modules_options(options).resolve().await?,
     )
@@ -2604,7 +2604,7 @@ async fn resolve_module_request(
     // "[baseUrl]/foo/bar" or "[baseUrl]/node_modules/foo/bar", and we'll need to
     // try both.
     for item in &result.packages {
-        match *item {
+        match item {
             FindPackageItem::PackageDirectory(package_path) => {
                 results.push(resolve_into_package(
                     Value::new(path.clone()),
