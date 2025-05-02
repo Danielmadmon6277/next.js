@@ -830,8 +830,8 @@ pub struct EvaluateEmittedErrorIssue {
 #[turbo_tasks::value_impl]
 impl Issue for EvaluateEmittedErrorIssue {
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.file_path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.file_path.clone().cell()
     }
 
     #[turbo_tasks::function]
@@ -856,8 +856,8 @@ impl Issue for EvaluateEmittedErrorIssue {
                 self.error
                     .print(
                         *self.assets_for_source_mapping,
-                        *self.assets_root,
-                        *self.project_dir,
+                        self.assets_root.clone(),
+                        self.project_dir.clone(),
                         FormattingMode::Plain,
                     )
                     .await?
