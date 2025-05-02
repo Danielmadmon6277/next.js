@@ -1,9 +1,10 @@
 use std::{
-    borrow::Cow,
+    error::Error,
     fmt::{self, Debug, Display},
     future::Future,
     hash::{BuildHasherDefault, Hash},
     pin::Pin,
+    sync::Arc,
     time::Duration,
 };
 
@@ -23,7 +24,7 @@ use crate::{
     task_statistics::TaskStatisticsApi,
     triomphe_utils::unchecked_sidecast_triomphe_arc,
     FunctionId, RawVc, ReadCellOptions, ReadRef, SharedReference, TaskId, TaskIdSet, TraitRef,
-    TraitTypeId, ValueTypeId, VcRead, VcValueTrait, VcValueType,
+    TraitTypeId, TurboTasksPanic, ValueTypeId, VcRead, VcValueTrait, VcValueType,
 };
 
 pub type TransientTaskRoot =
@@ -398,6 +399,82 @@ impl TryFrom<CellContent> for SharedReference {
 
 pub type TaskCollectiblesMap = AutoMap<RawVc, i32, BuildHasherDefault<FxHasher>, 1>;
 
+// Structurally and functionally similar to Cow<&'static, str> but explicitly notes the importance
+// of non-static strings potentially containing PII.
+#[derive(Clone, Debug)]
+pub enum TurboTasksExecutionErrorMessage {
+    PIISafe(&'static str),
+    NonPIISafe(String),
+}
+
+impl Display for TurboTasksExecutionErrorMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TurboTasksExecutionErrorMessage::PIISafe(msg) => write!(f, "{}", msg),
+            TurboTasksExecutionErrorMessage::NonPIISafe(msg) => write!(f, "{}", msg),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum TurboTasksExecutionError {
+    Panic(Arc<TurboTasksPanic>),
+    Error {
+        message: TurboTasksExecutionErrorMessage,
+        source: Option<Arc<TurboTasksExecutionError>>,
+    },
+}
+
+impl Error for TurboTasksExecutionError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            TurboTasksExecutionError::Panic(panic) => Some(panic.as_ref() as &dyn Error),
+            TurboTasksExecutionError::Error { source, .. } => {
+                source.as_deref().map(|s| s as &dyn Error)
+            }
+        }
+    }
+}
+
+impl Display for TurboTasksExecutionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TurboTasksExecutionError::Panic(panic) => write!(f, "{}", &panic),
+            TurboTasksExecutionError::Error { message, .. } => {
+                write!(f, "{}", message)
+            }
+        }
+    }
+}
+
+impl From<anyhow::Error> for TurboTasksExecutionError {
+    fn from(err: anyhow::Error) -> Self {
+        let mut current: &dyn std::error::Error = err.as_ref();
+        let mut found = None;
+        while let Some(current_source) = current.source() {
+            if let Some(err) = current_source.downcast_ref::<Arc<TurboTasksExecutionError>>() {
+                found = Some(err);
+                break;
+            }
+            current = current_source;
+        }
+
+        let found = found.cloned();
+        let message = match err.downcast_ref::<String>() {
+            Some(message) => TurboTasksExecutionErrorMessage::NonPIISafe(message.to_owned()),
+            None => match err.downcast_ref::<&'static str>() {
+                Some(message) => TurboTasksExecutionErrorMessage::PIISafe(message),
+                None => TurboTasksExecutionErrorMessage::NonPIISafe(err.to_string()),
+            },
+        };
+
+        TurboTasksExecutionError::Error {
+            message,
+            source: found,
+        }
+    }
+}
+
 pub trait Backend: Sync + Send {
     #[allow(unused_variables)]
     fn startup(&self, turbo_tasks: &dyn TurboTasksBackendApi<Self>) {}
@@ -459,8 +536,8 @@ pub trait Backend: Sync + Send {
 
     fn task_execution_result(
         &self,
-        task: TaskId,
-        result: Result<Result<RawVc>, Option<Cow<'static, str>>>,
+        task_id: TaskId,
+        result: Result<RawVc, Arc<TurboTasksExecutionError>>,
         turbo_tasks: &dyn TurboTasksBackendApi<Self>,
     );
 
