@@ -101,7 +101,7 @@ impl DirList {
                         list.insert(
                             relative_path,
                             DirListEntry::Dir(
-                                DirList::read_internal(root, **path, recursive, filter)
+                                DirList::read_internal(root, path.clone(), recursive, filter)
                                     .to_resolved()
                                     .await?,
                             ),
@@ -130,7 +130,7 @@ impl DirList {
             for (k, entry) in &*dir {
                 match entry {
                     DirListEntry::File(path) => {
-                        list.insert(k.clone(), *path);
+                        list.insert(k.clone(), path.clone());
                     }
                     DirListEntry::Dir(d) => {
                         queue.push_back(d.await?);
