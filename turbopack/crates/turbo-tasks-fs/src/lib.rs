@@ -1406,6 +1406,9 @@ pub async fn rebase(
 
 #[turbo_tasks::value_impl]
 impl FileSystemPath {
+    /// This method exists to satisfy the signature of some functions. (async/sync)
+    ///
+    /// TODO(kdy1): Remove this function completely.
     #[turbo_tasks::function]
     pub async fn join_vc(self: Vc<Self>, path: RcStr) -> Result<Vc<Self>> {
         let this = self.await?;
