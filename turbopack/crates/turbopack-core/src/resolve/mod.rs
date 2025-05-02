@@ -2796,10 +2796,10 @@ async fn resolve_import_map_result(
                         ExternalType::Url => options,
                         // TODO is that root correct?
                         ExternalType::CommonJs => {
-                            node_cjs_resolve_options(alias_lookup_path.root())
+                            node_cjs_resolve_options((*alias_lookup_path.root().await?).clone())
                         }
                         ExternalType::EcmaScriptModule => {
-                            node_esm_resolve_options(alias_lookup_path.root())
+                            node_esm_resolve_options((*alias_lookup_path.root().await?).clone())
                         }
                     },
                 )
@@ -2822,8 +2822,8 @@ async fn resolve_import_map_result(
                 .map(|result| {
                     Box::pin(resolve_import_map_result(
                         result,
-                        lookup_path,
-                        original_lookup_path,
+                        lookup_path.clone(),
+                        original_lookup_path.clone(),
                         original_request,
                         options,
                         query,
@@ -2851,10 +2851,10 @@ async fn resolved(
 ) -> Result<Vc<ResolveResult>> {
     let RealPathResult { path, symlinks } = &*fs_path.realpath_with_links().await?;
 
-    let path_ref = &*path.await?;
+    let path_ref = path;
     // Check alias field for path aliases first
     if let Some(result) = apply_in_package(
-        path.parent().resolve().await?,
+        path.parent(),
         options,
         options_value,
         |package_path| package_path.get_relative_path_to(path_ref),
@@ -2868,7 +2868,7 @@ async fn resolved(
 
     if let Some(resolved_map) = options_value.resolved_map {
         let result = resolved_map
-            .lookup(**path, original_context, original_request)
+            .lookup(path.clone(), original_context.clone(), original_request)
             .await?;
 
         let resolved_result = resolve_import_map_result(
@@ -2947,8 +2947,12 @@ async fn handle_exports_imports_field(
             .to_resolved()
             .await?;
 
-            let resolve_result =
-                Box::pin(resolve_internal_inline(package_path, *request, options)).await?;
+            let resolve_result = Box::pin(resolve_internal_inline(
+                package_path.clone(),
+                *request,
+                options,
+            ))
+            .await?;
             if conditions.is_empty() {
                 resolved_results.push(resolve_result.with_request(path.into()));
             } else {
@@ -2987,7 +2991,7 @@ async fn resolve_package_internal_with_imports_field(
     if specifier == "#" || specifier.starts_with("#/") || specifier.ends_with('/') {
         ResolvingIssue {
             severity: error_severity(resolve_options).await?,
-            file_path: file_path.to_resolved().await?,
+            file_path: file_path.clone(),
             request_type: format!("package imports request: `{specifier}`"),
             request: request.to_resolved().await?,
             resolve_options: resolve_options.to_resolved().await?,
@@ -3007,7 +3011,7 @@ async fn resolve_package_internal_with_imports_field(
 
     handle_exports_imports_field(
         package_json_path.parent(),
-        *package_json_path,
+        package_json_path.clone(),
         resolve_options,
         imports,
         specifier,
