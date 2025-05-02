@@ -72,7 +72,7 @@ impl OutputAsset for SourceMapAsset {
         // NOTE(alexkirsz) We used to include the asset's version id in the path,
         // but this caused `all_assets_map` to be recomputed on every change.
         let this = self.await?;
-        Ok(match this.path_ty {
+        Ok(match &*this.path_ty {
             PathType::FromIdent {
                 chunking_context,
                 ident_for_path,
@@ -81,7 +81,7 @@ impl OutputAsset for SourceMapAsset {
                 .await?
                 .append(".map".into())?
                 .cell(),
-            PathType::Fixed { path } => path.append(".map".into()).cell(),
+            PathType::Fixed { path } => path.append(".map".into())?.cell(),
         })
     }
 }
