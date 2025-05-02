@@ -177,14 +177,14 @@ impl RequireContextMap {
         issue_source: Option<IssueSource>,
         is_optional: bool,
     ) -> Result<Vc<Self>> {
-        let origin_path = &*origin.origin_path().parent().await?;
+        let origin_path = &*origin.origin_path().await?.parent();
 
         let list = &*FlatDirList::read(dir, recursive, filter).await?;
 
         let mut map = FxIndexMap::default();
 
         for (context_relative, path) in list {
-            let Some(origin_relative) = origin_path.get_relative_path_to(&*path.await?) else {
+            let Some(origin_relative) = origin_path.get_relative_path_to(&*path) else {
                 bail!("invariant error: this was already checked in `list_dir`");
             };
 
