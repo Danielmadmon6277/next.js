@@ -340,7 +340,7 @@ pub async fn trace_stack(
     project_dir: FileSystemPath,
 ) -> Result<String> {
     let assets_for_source_mapping =
-        internal_assets_for_source_mapping(root_asset.clone(), output_path.clone());
+        internal_assets_for_source_mapping(root_asset, output_path.clone());
 
     trace_stack_with_source_mapping_assets(
         error,
