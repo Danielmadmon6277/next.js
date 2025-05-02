@@ -637,8 +637,8 @@ impl EvaluateContext for BasicEvaluateContext {
         &self.args
     }
 
-    fn cwd(&self) -> Vc<turbo_tasks_fs::FileSystemPath> {
-        self.cwd.clone().cell()
+    fn cwd(&self) -> FileSystemPath {
+        self.cwd.clone()
     }
 
     fn keep_alive(&self) -> bool {
@@ -650,8 +650,8 @@ impl EvaluateContext for BasicEvaluateContext {
             error,
             context_ident: self.context_ident_for_issue,
             assets_for_source_mapping: pool.assets_for_source_mapping,
-            assets_root: pool.assets_root,
-            root_path: self.chunking_context.root_path().to_resolved().await?,
+            assets_root: pool.assets_root.clone(),
+            root_path: (*self.chunking_context.root_path().await?).clone(),
         }
         .resolved_cell()
         .emit();
