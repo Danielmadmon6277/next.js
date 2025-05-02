@@ -365,7 +365,7 @@ pub(crate) async fn config_loader_source(
         return Ok(Vc::upcast(FileSource::new(postcss_config_path)));
     }
 
-    let Some(config_path) = project_path.get_relative_path_to(postcss_config_path_value) else {
+    let Some(config_path) = project_path.get_relative_path_to(&postcss_config_path_value) else {
         bail!("Unable to get relative path to postcss config");
     };
 
@@ -402,7 +402,7 @@ async fn postcss_executor(
 ) -> Result<Vc<ProcessResult>> {
     let config_asset = asset_context
         .process(
-            config_loader_source(project_path, postcss_config_path),
+            config_loader_source(project_path, postcss_config_path.clone()),
             Value::new(ReferenceType::Entry(EntryReferenceSubType::Undefined)),
         )
         .module()
@@ -411,7 +411,7 @@ async fn postcss_executor(
 
     Ok(asset_context.process(
         Vc::upcast(VirtualSource::new(
-            postcss_config_path.join("transform.ts".into()),
+            postcss_config_path.join("transform.ts".into())?,
             AssetContent::File(
                 embed_file("transforms/postcss.ts".into())
                     .to_resolved()
@@ -430,7 +430,7 @@ async fn find_config_in_location(
     location: PostCssConfigLocation,
     source: Vc<Box<dyn Source>>,
 ) -> Result<Option<FileSystemPath>> {
-    if let FindContextFileResult::Found(config_path, _) = *find_context_file_or_package_key(
+    if let FindContextFileResult::Found(config_path, _) = &*find_context_file_or_package_key(
         project_path,
         postcss_configs(),
         Value::new("postcss".into()),
@@ -441,14 +441,14 @@ async fn find_config_in_location(
     }
 
     if matches!(location, PostCssConfigLocation::ProjectPathOrLocalPath) {
-        if let FindContextFileResult::Found(config_path, _) = *find_context_file_or_package_key(
-            source.ident().path().parent(),
+        if let FindContextFileResult::Found(config_path, _) = &*find_context_file_or_package_key(
+            source.ident().path().await?.parent(),
             postcss_configs(),
             Value::new("postcss".into()),
         )
         .await?
         {
-            return Ok(Some(config_path));
+            return Ok(Some(config_path.clone()));
         }
     }
 
@@ -515,14 +515,15 @@ impl PostCssTransformedAsset {
         let source_map = self.source_map;
 
         // This invalidates the transform when the config changes.
-        let config_changed = config_changed(*evaluate_context, config_path)
+        let config_changed = config_changed(*evaluate_context, config_path.clone())
             .to_resolved()
             .await?;
 
-        let postcss_executor = postcss_executor(*evaluate_context, **project_path, config_path)
-            .module()
-            .to_resolved()
-            .await?;
+        let postcss_executor =
+            postcss_executor(*evaluate_context, project_path.clone(), config_path.clone())
+                .module()
+                .to_resolved()
+                .await?;
         let css_fs_path = self.source.ident().path();
 
         // We need to get a path relative to the project because the postcss loader
@@ -537,7 +538,7 @@ impl PostCssTransformedAsset {
 
         let config_value = evaluate_webpack_loader(WebpackLoaderContext {
             module_asset: postcss_executor,
-            cwd: *project_path,
+            cwd: project_path.clone(),
             env: *env,
             context_ident_for_issue: self.source.ident().to_resolved().await?,
             asset_context: evaluate_context,
