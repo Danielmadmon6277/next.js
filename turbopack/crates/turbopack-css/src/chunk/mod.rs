@@ -240,8 +240,8 @@ pub struct CssChunkContent {
 #[turbo_tasks::value_impl]
 impl Chunk for CssChunk {
     #[turbo_tasks::function]
-    fn ident(self: Vc<Self>) -> Vc<AssetIdent> {
-        AssetIdent::from_path(self.path())
+    async fn ident(self: Vc<Self>) -> Result<Vc<AssetIdent>> {
+        Ok(AssetIdent::from_path((*self.path().await?).clone()))
     }
 
     #[turbo_tasks::function]
