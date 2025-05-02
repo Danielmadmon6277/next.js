@@ -314,7 +314,7 @@ pub async fn parse_css(
                         process_content(
                             *file_content,
                             string.into_owned(),
-                            fs_path.to_resolved().await?,
+                            fs_path.clone(),
                             ident_str,
                             source,
                             origin,
@@ -394,7 +394,7 @@ async fn process_content(
                     ss.visit(&mut validator).unwrap();
 
                     for err in validator.errors {
-                        err.report(fs_path_vc);
+                        err.report(fs_path_vc.clone());
                     }
                 }
 
