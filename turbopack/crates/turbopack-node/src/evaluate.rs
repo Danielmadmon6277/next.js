@@ -95,7 +95,9 @@ async fn emit_evaluate_pool_assets_operation(
 ) -> Result<Vc<EmittedEvaluatePoolAssets>> {
     let runtime_asset = asset_context
         .process(
-            Vc::upcast(FileSource::new(embed_file_path("ipc/evaluate.ts".into()))),
+            Vc::upcast(FileSource::new(
+                (*embed_file_path("ipc/evaluate.ts".into()).await?).clone(),
+            )),
             Value::new(ReferenceType::Internal(
                 InnerAssets::empty().to_resolved().await?,
             )),
@@ -113,11 +115,18 @@ async fn emit_evaluate_pool_assets_operation(
     } else {
         Cow::Owned(format!("{file_name}.js"))
     };
-    let entrypoint = chunking_context.output_root().join(file_name.into());
+    let entrypoint = chunking_context
+        .output_root()
+        .await?
+        .join(file_name.into())?;
     let entry_module = asset_context
         .process(
             Vc::upcast(VirtualSource::new(
-                runtime_asset.ident().path().join("evaluate.js".into()),
+                runtime_asset
+                    .ident()
+                    .path()
+                    .await?
+                    .join("evaluate.js".into())?,
                 AssetContent::file(
                     File::from("import { run } from 'RUNTIME'; run(() => import('INNER'))").into(),
                 ),
@@ -134,7 +143,9 @@ async fn emit_evaluate_pool_assets_operation(
     let runtime_entries = {
         let globals_module = asset_context
             .process(
-                Vc::upcast(FileSource::new(embed_file_path("globals.ts".into()))),
+                Vc::upcast(FileSource::new(
+                    (*embed_file_path("globals.ts".into()).await?).clone(),
+                )),
                 Value::new(ReferenceType::Internal(
                     InnerAssets::empty().to_resolved().await?,
                 )),
@@ -166,21 +177,21 @@ async fn emit_evaluate_pool_assets_operation(
     );
 
     let bootstrap = chunking_context.root_entry_chunk_group_asset(
-        entrypoint,
+        entrypoint.clone(),
         Vc::<EvaluatableAssets>::cell(runtime_entries)
             .with_entry(*ResolvedVc::try_downcast(entry_module).unwrap()),
         module_graph,
         OutputAssets::empty(),
     );
 
-    let output_root = chunking_context.output_root().to_resolved().await?;
-    let _ = emit_package_json(*output_root).resolve().await?;
-    let _ = emit(bootstrap, *output_root).resolve().await?;
+    let output_root = (*chunking_context.output_root().await?).clone();
+    let _ = emit_package_json(output_root.clone()).resolve().await?;
+    let _ = emit(bootstrap, output_root.clone()).resolve().await?;
 
     Ok(EmittedEvaluatePoolAssets {
         bootstrap: bootstrap.to_resolved().await?,
         output_root,
-        entrypoint: entrypoint.to_resolved().await?,
+        entrypoint,
     }
     .cell())
 }
@@ -276,7 +287,7 @@ pub async fn get_evaluate_pool(
         env.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
         assets_for_source_mapping,
         output_root,
-        chunking_context.root_path().to_resolved().await?,
+        (*chunking_context.root_path().await?).clone(),
         available_parallelism().map_or(1, |v| v.get()),
         debug,
     );
@@ -712,7 +723,7 @@ impl Issue for EvaluationIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
+    fn file_path(&self) -> Vc<FileSystemPath> {
         self.context_ident.path()
     }
 
@@ -723,8 +734,8 @@ impl Issue for EvaluationIssue {
                 self.error
                     .print(
                         *self.assets_for_source_mapping,
-                        *self.assets_root,
-                        *self.root_path,
+                        self.assets_root.clone(),
+                        self.root_path.clone(),
                         FormattingMode::Plain,
                     )
                     .await?
