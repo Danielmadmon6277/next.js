@@ -140,9 +140,9 @@ pub async fn resolve_source_map_sources(
         return Ok(None);
     };
 
-    resolve_map(&mut map, origin).await?;
+    resolve_map(&mut map, origin.clone()).await?;
     for section in map.sections.iter_mut().flatten() {
-        resolve_map(&mut section.map, origin).await?;
+        resolve_map(&mut section.map, origin.clone()).await?;
     }
 
     let map = Rope::from(serde_json::to_vec(&map)?);
@@ -174,7 +174,7 @@ pub async fn fileify_source_map(
     let transform_source = async |src: &mut Option<String>| {
         if let Some(src) = src {
             if let Some(src_rest) = src.strip_prefix(&prefix) {
-                *src = uri_from_file(context_path, Some(src_rest)).await?;
+                *src = uri_from_file(context_path.clone(), Some(src_rest)).await?;
             }
         }
         anyhow::Ok(())
