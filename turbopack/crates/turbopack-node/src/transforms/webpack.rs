@@ -243,8 +243,7 @@ impl WebpackLoadersProcessedAsset {
             .await?;
 
         let resource_fs_path = (*this.source.ident().path().await?).clone();
-        let Some(resource_path) = project_path.await?.get_relative_path_to(&resource_fs_path)
-        else {
+        let Some(resource_path) = project_path.get_relative_path_to(&resource_fs_path) else {
             bail!(format!(
                 "Resource path \"{}\" need to be on project filesystem \"{}\"",
                 resource_fs_path, project_path
@@ -437,7 +436,7 @@ impl EvaluateContext for WebpackLoaderContext {
     fn pool(&self) -> OperationVc<crate::pool::NodeJsPool> {
         get_evaluate_pool(
             self.module_asset,
-            self.cwd,
+            self.cwd.clone(),
             self.env,
             self.asset_context,
             self.chunking_context,
@@ -586,7 +585,7 @@ impl EvaluateContext for WebpackLoaderContext {
                 );
 
                 let request_str = request.to_string().await?;
-                let lookup_path_str = lookup_path.to_string().await?;
+                let lookup_path_str = lookup_path.to_string();
                 if let Some(source) = *resolved.first_source().await? {
                     if let Some(path) = self
                         .cwd
