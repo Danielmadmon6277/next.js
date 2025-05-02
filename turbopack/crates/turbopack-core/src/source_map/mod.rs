@@ -410,7 +410,7 @@ impl SourceMap {
             origin: FileSystemPath,
         ) -> Result<(Arc<str>, Arc<str>)> {
             Ok(
-                if let Some(path) = *origin.parent().try_join((&*source_request).into())? {
+                if let Some(path) = origin.parent().try_join((&*source_request).into())? {
                     let path_str = path.to_string().await?;
                     let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
                     let source_content = if let Some(source_content) = source_content {
@@ -519,13 +519,14 @@ impl SourceMap {
         }
         Ok(match self {
             Self::Decoded(m) => {
-                let map = Box::pin(decoded_map_with_resolved_sources(&m.map, origin)).await?;
+                let map =
+                    Box::pin(decoded_map_with_resolved_sources(&m.map, origin.clone())).await?;
                 Self::Decoded(InnerSourceMap::new(map.0))
             }
             Self::Sectioned(m) => {
                 let mut sections = Vec::with_capacity(m.sections.len());
                 for section in &m.sections {
-                    let map = Box::pin(section.map.with_resolved_sources(origin)).await?;
+                    let map = Box::pin(section.map.with_resolved_sources(origin.clone())).await?;
                     sections.push(SourceMapSection::new(section.offset, map));
                 }
                 SourceMap::new_sectioned(sections)
