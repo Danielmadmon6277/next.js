@@ -242,15 +242,12 @@ impl WebpackLoadersProcessedAsset {
             .to_resolved()
             .await?;
 
-        let resource_fs_path = this.source.ident().path();
-        let resource_fs_path_ref = resource_fs_path.await?;
-        let Some(resource_path) = project_path
-            .await?
-            .get_relative_path_to(&resource_fs_path_ref)
+        let resource_fs_path = (*this.source.ident().path().await?).clone();
+        let Some(resource_path) = project_path.await?.get_relative_path_to(&resource_fs_path)
         else {
             bail!(format!(
                 "Resource path \"{}\" need to be on project filesystem \"{}\"",
-                resource_fs_path_ref, project_path
+                resource_fs_path, project_path
             ));
         };
         let loaders = transform.loaders.await?;
@@ -575,14 +572,14 @@ impl EvaluateContext for WebpackLoaderContext {
                 let Some(resolve_options_context) = self.resolve_options_context else {
                     bail!("Resolve options are not available in this context");
                 };
-                let lookup_path = self.cwd.join(lookup_path);
+                let lookup_path = self.cwd.join(lookup_path)?;
                 let request = Request::parse(Value::new(Pattern::Constant(request)));
-                let options = resolve_options(lookup_path, *resolve_options_context);
+                let options = resolve_options(lookup_path.clone(), *resolve_options_context);
 
                 let options = apply_webpack_resolve_options(options, webpack_options);
 
                 let resolved = resolve(
-                    lookup_path,
+                    lookup_path.clone(),
                     Value::new(ReferenceType::Undefined),
                     request,
                     options,
@@ -593,7 +590,6 @@ impl EvaluateContext for WebpackLoaderContext {
                 if let Some(source) = *resolved.first_source().await? {
                     if let Some(path) = self
                         .cwd
-                        .await?
                         .get_relative_path_to(&*source.ident().path().await?)
                     {
                         Ok(ResponseMessage::Resolve { path })
@@ -630,7 +626,7 @@ impl EvaluateContext for WebpackLoaderContext {
                 .collect();
 
             EvaluateErrorLoggingIssue {
-                file_path: self.context_ident_for_issue.path().to_resolved().await?,
+                file_path: (*self.context_ident_for_issue.path().to_resolved().await?).clone(),
                 logging: logs,
                 severity: if has_errors {
                     IssueSeverity::Error.resolved_cell()
@@ -639,7 +635,7 @@ impl EvaluateContext for WebpackLoaderContext {
                 },
                 assets_for_source_mapping: pool.assets_for_source_mapping,
                 assets_root: pool.assets_root,
-                project_dir: self.chunking_context.root_path().to_resolved().await?,
+                project_dir: (*self.chunking_context.root_path().await?).clone(),
             }
             .resolved_cell()
             .emit();
@@ -757,7 +753,7 @@ impl Issue for BuildDependencyIssue {
 
     #[turbo_tasks::function]
     fn file_path(&self) -> Vc<FileSystemPath> {
-        self.context_ident.path().clone().cell()
+        self.context_ident.path()
     }
 
     #[turbo_tasks::function]
