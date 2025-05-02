@@ -559,9 +559,7 @@ impl ResolvedMap {
         lookup_path: FileSystemPath,
         request: Vc<Request>,
     ) -> Result<Vc<ImportMapResult>> {
-        let resolved = resolved.await?;
         for (root, glob, mapping) in self.by_glob.iter() {
-            let root = root.await?;
             if let Some(path) = root.get_path_to(&resolved) {
                 if glob.await?.execute(path) {
                     return Ok(import_mapping_to_result(
