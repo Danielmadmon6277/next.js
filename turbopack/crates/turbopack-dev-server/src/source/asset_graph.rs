@@ -384,7 +384,7 @@ impl Introspectable for FullyExpanded {
 
     #[turbo_tasks::function]
     async fn title(&self) -> Result<Vc<RcStr>> {
-        Ok(Vc::cell(self.0.await?.root_path.to_string()))
+        Ok(Vc::cell(self.0.await?.root_path.path.clone()))
     }
 
     #[turbo_tasks::function]
@@ -392,8 +392,7 @@ impl Introspectable for FullyExpanded {
         let source = self.0.await?;
         let key = ResolvedVc::cell("asset".into());
 
-        let expanded_assets =
-            expand(&*source.root_assets.await?, &*source.root_path.await?, None).await?;
+        let expanded_assets = expand(&*source.root_assets.await?, &source.root_path, None).await?;
         let children = expanded_assets
             .iter()
             .map(|(_k, &v)| async move {
