@@ -367,9 +367,7 @@ impl ModuleReference for NodeBindingsReference {
 impl ValueToString for NodeBindingsReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
-        Ok(Vc::cell(
-            format!("bindings in {}", self.context_dir.to_string()).into(),
-        ))
+        Ok(Vc::cell(format!("bindings in {}", self.context_dir).into()))
     }
 }
 
