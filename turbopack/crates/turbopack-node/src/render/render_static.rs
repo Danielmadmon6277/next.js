@@ -290,12 +290,12 @@ async fn render_stream_internal(
             *runtime_entries,
         ).to_resolved().await?;
         let renderer_pool_op = get_renderer_pool_operation(
-            cwd,
+            cwd.clone(),
             env,
             intermediate_asset,
-            intermediate_output_path,
-            output_root,
-            project_dir,
+            intermediate_output_path.clone(),
+            output_root.clone(),
+            project_dir.clone(),
             debug,
         );
 
