@@ -584,8 +584,8 @@ struct PostCssTransformIssue {
 #[turbo_tasks::value_impl]
 impl Issue for PostCssTransformIssue {
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.source
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.source.clone().cell()
     }
 
     #[turbo_tasks::function]
