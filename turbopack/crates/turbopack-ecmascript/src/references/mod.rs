@@ -1899,7 +1899,7 @@ async fn handle_call<G: Fn(Vec<Effect>) + Send + Sync>(
         }
 
         JsValue::WellKnownFunction(WellKnownFunctionKind::PathResolve(..)) => {
-            let parent_path = origin.origin_path().parent().await?;
+            let parent_path = origin.origin_path().await?.parent();
             let args = linked_args(args).await?;
 
             let linked_func_call = state
@@ -2102,7 +2102,7 @@ async fn handle_call<G: Fn(Vec<Effect>) + Send + Sync>(
                 }
                 analysis.add_reference(
                     NodePreGypConfigReference::new(
-                        origin.origin_path().parent(),
+                        origin.origin_path().await?.parent(),
                         Pattern::new(pat),
                         compile_time_info.environment().compile_target(),
                     )
@@ -2135,8 +2135,10 @@ async fn handle_call<G: Fn(Vec<Effect>) + Send + Sync>(
                     // TODO this resolving should happen within Vc<NodeGypBuildReference>
                     let current_context = origin
                         .origin_path()
+                        .await?
                         .root()
-                        .join(s.trim_start_matches("/ROOT/").into());
+                        .await?
+                        .join(s.trim_start_matches("/ROOT/").into())?;
                     analysis.add_reference(
                         NodeGypBuildReference::new(
                             current_context,
@@ -2169,9 +2171,12 @@ async fn handle_call<G: Fn(Vec<Effect>) + Send + Sync>(
                     .await?;
                 if let Some(s) = first_arg.as_str() {
                     analysis.add_reference(
-                        NodeBindingsReference::new(origin.origin_path(), s.into())
-                            .to_resolved()
-                            .await?,
+                        NodeBindingsReference::new(
+                            (*origin.origin_path().await?).clone(),
+                            s.into(),
+                        )
+                        .to_resolved()
+                        .await?,
                     );
                     return Ok(());
                 }
@@ -2550,7 +2555,7 @@ async fn handle_free_var_reference(
                             ResolvedVc::upcast(
                                 PlainResolveOrigin::new(
                                     state.origin.asset_context(),
-                                    **lookup_path,
+                                    lookup_path.clone(),
                                 )
                                 .to_resolved()
                                 .await?,
