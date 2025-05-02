@@ -21,10 +21,10 @@ pub trait EcmascriptChunkPlaceable: ChunkableModule + Module + Asset {
     fn get_async_module(self: Vc<Self>) -> Vc<OptionAsyncModule> {
         Vc::cell(None)
     }
-    fn is_marked_as_side_effect_free(
+    async fn is_marked_as_side_effect_free(
         self: Vc<Self>,
         side_effect_free_packages: Vc<Glob>,
-    ) -> Vc<bool> {
+    ) -> Result<Vc<bool>> {
         is_marked_as_side_effect_free(
             (*self.ident().path().await?).clone(),
             side_effect_free_packages,
@@ -182,7 +182,7 @@ pub async fn is_marked_as_side_effect_free(
             SideEffectsValue::None => {}
             SideEffectsValue::Constant(side_effects) => return Ok(Vc::cell(!side_effects)),
             SideEffectsValue::Glob(glob) => {
-                if let Some(rel_path) = package_json.parent().get_relative_path_to(&*path) {
+                if let Some(rel_path) = package_json.parent().get_relative_path_to(&path) {
                     let rel_path = rel_path.strip_prefix("./").unwrap_or(&rel_path);
                     return Ok(Vc::cell(!glob.await?.execute(rel_path)));
                 }
