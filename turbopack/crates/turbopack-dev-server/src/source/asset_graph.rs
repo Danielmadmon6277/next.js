@@ -4,8 +4,7 @@ use anyhow::Result;
 use rustc_hash::FxHashSet;
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
-    fxindexset, Completion, FxIndexMap, FxIndexSet, ResolvedVc, State, TryJoinIterExt, Value,
-    ValueToString, Vc,
+    fxindexset, Completion, FxIndexMap, FxIndexSet, ResolvedVc, State, TryJoinIterExt, Value, Vc,
 };
 use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
@@ -93,7 +92,7 @@ impl AssetGraphContentSource {
         Ok(Vc::cell(
             expand(
                 &*self.root_assets.await?,
-                &*self.root_path.await?,
+                &self.root_path,
                 self.expanded.as_ref(),
             )
             .await?,
@@ -307,7 +306,7 @@ impl Introspectable for AssetGraphContentSource {
 
     #[turbo_tasks::function]
     fn title(&self) -> Vc<RcStr> {
-        self.root_path.to_string()
+        Vc::cell(self.root_path.path.clone())
     }
 
     #[turbo_tasks::function]
@@ -385,7 +384,7 @@ impl Introspectable for FullyExpanded {
 
     #[turbo_tasks::function]
     async fn title(&self) -> Result<Vc<RcStr>> {
-        Ok(self.0.await?.root_path.to_string())
+        Ok(Vc::cell(self.0.await?.root_path.to_string()))
     }
 
     #[turbo_tasks::function]
