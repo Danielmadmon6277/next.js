@@ -58,7 +58,7 @@ async fn side_effects_from_package_json(
                             }
                         } else {
                             SideEffectsInPackageJsonIssue {
-                                path: package_json,
+                                path: package_json.clone(),
                                 description: Some(
                                     StyledString::Text(
                                         format!(
@@ -165,7 +165,7 @@ pub async fn is_marked_as_side_effect_free(
     path: FileSystemPath,
     side_effect_free_packages: Vc<Glob>,
 ) -> Result<Vc<bool>> {
-    if side_effect_free_packages.await?.execute(&path.await?.path) {
+    if side_effect_free_packages.await?.execute(&path.path) {
         return Ok(Vc::cell(true));
     }
 
