@@ -227,9 +227,9 @@ async fn extra_configs_changed(
     let parent_path = postcss_config_path.parent();
 
     let config_paths = [
-        parent_path.join("tailwind.config.js".into()),
-        parent_path.join("tailwind.config.mjs".into()),
-        parent_path.join("tailwind.config.ts".into()),
+        parent_path.join("tailwind.config.js".into())?,
+        parent_path.join("tailwind.config.mjs".into())?,
+        parent_path.join("tailwind.config.ts".into())?,
     ];
 
     let configs = config_paths
@@ -489,7 +489,8 @@ impl PostCssTransformedAsset {
         //
         // We look for the config in the project path first, then the source path
         let Some(config_path) =
-            find_config_in_location(**project_path, self.config_location, *self.source).await?
+            find_config_in_location(project_path.clone(), self.config_location, *self.source)
+                .await?
         else {
             return Ok(ProcessPostCssResult {
                 content: self.source.content().to_resolved().await?,
