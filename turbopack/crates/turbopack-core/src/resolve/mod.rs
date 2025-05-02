@@ -2683,7 +2683,7 @@ async fn resolve_into_package(
             } => {
                 let package_json_path = package_path.join("package.json".into())?;
                 let ExportsFieldResult::Some(exports_field) =
-                    &*exports_field(package_json_path).await?
+                    &*exports_field(package_json_path.clone()).await?
                 else {
                     continue;
                 };
@@ -2701,7 +2701,7 @@ async fn resolve_into_package(
                 results.push(
                     handle_exports_imports_field(
                         package_path.clone(),
-                        package_json_path,
+                        package_json_path.clone(),
                         *options,
                         exports_field,
                         &path,
