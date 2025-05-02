@@ -92,7 +92,7 @@ impl Chunk for EcmascriptChunk {
         for &chunk_item in chunk_items.iter() {
             if let Some(common_path_ref) = common_path.as_mut() {
                 let path = chunk_item.asset_ident().path().await?;
-                while !path.is_inside_or_equal_ref(&common_path_ref) {
+                while !path.is_inside_or_equal_ref(common_path_ref) {
                     let parent = common_path_ref.parent();
                     if parent == *common_path_ref {
                         common_path = None;
