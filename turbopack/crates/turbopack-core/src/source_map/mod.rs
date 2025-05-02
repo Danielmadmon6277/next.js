@@ -411,7 +411,7 @@ impl SourceMap {
         ) -> Result<(Arc<str>, Arc<str>)> {
             Ok(
                 if let Some(path) = origin.parent().try_join((&*source_request).into())? {
-                    let path_str = path.to_string().await?;
+                    let path_str = path.to_string();
                     let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
                     let source_content = if let Some(source_content) = source_content {
                         source_content
@@ -544,10 +544,10 @@ fn sourcemap_content_fs_root() -> Vc<FileSystemPath> {
 }
 
 #[turbo_tasks::function]
-fn sourcemap_content_source(path: RcStr, content: RcStr) -> Vc<Box<dyn Source>> {
-    let path = sourcemap_content_fs_root().join(path);
+async fn sourcemap_content_source(path: RcStr, content: RcStr) -> Result<Vc<Box<dyn Source>>> {
+    let path = sourcemap_content_fs_root().await?.join(path)?;
     let content = AssetContent::file(FileContent::new(File::from(content)).cell());
-    Vc::upcast(VirtualSource::new(path, content))
+    Ok(Vc::upcast(VirtualSource::new(path, content)))
 }
 
 impl SourceMap {
