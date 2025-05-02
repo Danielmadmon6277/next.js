@@ -504,7 +504,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     .try_join();
                 let file_subscriptions = file_paths
                     .iter()
-                    .map(|p| Ok(self.cwd.join(p.clone())?.read()))
+                    .map(|p| self.cwd.join(p.clone())?.read())
                     .try_join();
                 let directory_subscriptions = directories
                     .iter()
@@ -513,13 +513,11 @@ impl EvaluateContext for WebpackLoaderContext {
                         // `read_glob` does, Introduce a new read_glob
                         // option that will track all files the way
                         // `dir_dependency` does but in a single traversal.
-                        async move {
-                            anyhow::Ok(dir_dependency(
-                                self.cwd
-                                    .join(dir.clone())?
-                                    .read_glob(Glob::new(glob.clone()), false),
-                            ))
-                        }
+                        dir_dependency(
+                            self.cwd
+                                .join(dir.clone())?
+                                .read_glob(Glob::new(glob.clone()), false),
+                        )
                     })
                     .try_join();
                 let build_paths = build_file_paths
