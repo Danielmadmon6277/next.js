@@ -80,11 +80,7 @@ pub async fn resolve_source_map_sources(
         original_content: &mut Option<String>,
         origin: FileSystemPath,
     ) -> Result<()> {
-        if let Some(path) = *origin
-            .parent()
-            .try_join((&**original_source).into())
-            .await?
-        {
+        if let Some(path) = origin.parent().try_join((&**original_source).into())? {
             let path_str = path.to_string().await?;
             let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
             *original_source = source;
