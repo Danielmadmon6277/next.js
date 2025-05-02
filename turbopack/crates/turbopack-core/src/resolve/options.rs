@@ -454,7 +454,7 @@ async fn import_mapping_to_result(
                     Box::pin(import_mapping_to_result(
                         **mapping,
                         lookup_path.clone(),
-                        request.clone(),
+                        request,
                     ))
                 })
                 .try_join()
@@ -541,7 +541,7 @@ impl ImportMap {
                 import_mapping_to_result(
                     *result.try_join_into_self().await?,
                     lookup_path.clone(),
-                    request.clone(),
+                    request,
                 )
                 .await
             })

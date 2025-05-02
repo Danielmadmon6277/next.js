@@ -44,11 +44,9 @@ where
                     let common_parent = get_common_parent(chunk.clone()).await?;
 
                     Ok((
-                        if let Some(common_parent) = &*common_parent {
-                            Some(FileSystemPathKey::new(common_parent.clone()))
-                        } else {
-                            None
-                        },
+                        (*common_parent)
+                            .as_ref()
+                            .map(|common_parent| FileSystemPathKey::new(common_parent.clone())),
                         chunk.clone(),
                     ))
                 }
