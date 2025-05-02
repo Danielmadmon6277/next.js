@@ -65,7 +65,7 @@ pub(crate) struct DirList(FxIndexMap<RcStr, DirListEntry>);
 impl DirList {
     #[turbo_tasks::function]
     pub(crate) fn read(dir: FileSystemPath, recursive: bool, filter: Vc<EsRegex>) -> Vc<Self> {
-        Self::read_internal(dir, dir, recursive, filter)
+        Self::read_internal(dir.clone(), dir, recursive, filter)
     }
 
     #[turbo_tasks::function]
@@ -75,9 +75,9 @@ impl DirList {
         recursive: bool,
         filter: Vc<EsRegex>,
     ) -> Result<Vc<Self>> {
-        let root_val = &root.await?;
-        let dir_val = &dir.await?;
-        let regex = &filter.await?;
+        let root_val = &root;
+        let dir_val = &dir;
+        let regex = &filter;
 
         let mut list = FxIndexMap::default();
 
@@ -90,14 +90,14 @@ impl DirList {
         for (_, entry) in entries.iter().flat_map(|m| m.iter()) {
             match entry {
                 DirectoryEntry::File(path) => {
-                    if let Some(relative_path) = root_val.get_relative_path_to(&*path.await?) {
-                        if regex.is_match(&relative_path) {
+                    if let Some(relative_path) = root_val.get_relative_path_to(&*path) {
+                        if regex.await?.is_match(&relative_path) {
                             list.insert(relative_path, DirListEntry::File(*path));
                         }
                     }
                 }
                 DirectoryEntry::Directory(path) if recursive => {
-                    if let Some(relative_path) = dir_val.get_relative_path_to(&*path.await?) {
+                    if let Some(relative_path) = dir_val.get_relative_path_to(&*path) {
                         list.insert(
                             relative_path,
                             DirListEntry::Dir(
