@@ -81,7 +81,7 @@ pub async fn resolve_source_map_sources(
         origin: FileSystemPath,
     ) -> Result<()> {
         if let Some(path) = origin.parent().try_join((&**original_source).into())? {
-            let path_str = path.to_string().await?;
+            let path_str = path.to_string();
             let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
             *original_source = source;
 
@@ -94,7 +94,7 @@ pub async fn resolve_source_map_sources(
                 }
             }
         } else {
-            let origin_str = origin.to_string().await?;
+            let origin_str = origin.to_string();
             static INVALID_REGEX: Lazy<Regex> =
                 Lazy::new(|| Regex::new(r#"(?:^|/)(?:\.\.?(?:/|$))+"#).unwrap());
             let source = INVALID_REGEX.replace_all(original_source, |s: &regex::Captures<'_>| {
@@ -122,7 +122,7 @@ pub async fn resolve_source_map_sources(
 
             for (source, content) in sources.iter_mut().zip(contents.iter_mut()) {
                 if let Some(source) = source {
-                    resolve_source(source, content, origin).await?;
+                    resolve_source(source, content, origin.clone()).await?;
                 }
             }
 
