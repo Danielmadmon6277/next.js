@@ -170,7 +170,10 @@ impl Asset for PostCssTransformedAsset {
     async fn content(self: ResolvedVc<Self>) -> Result<Vc<AssetContent>> {
         let this = self.await?;
         Ok(*transform_process_operation(self)
-            .issue_file_path(this.source.ident().path(), "PostCSS processing")
+            .issue_file_path(
+                (*this.source.ident().path().await?).clone(),
+                "PostCSS processing",
+            )
             .await?
             .connect()
             .await?
@@ -198,7 +201,7 @@ async fn config_changed(
 ) -> Result<Vc<Completion>> {
     let config_asset = asset_context
         .process(
-            Vc::upcast(FileSource::new(postcss_config_path)),
+            Vc::upcast(FileSource::new(postcss_config_path.clone())),
             Value::new(ReferenceType::Internal(
                 InnerAssets::empty().to_resolved().await?,
             )),
@@ -209,7 +212,7 @@ async fn config_changed(
         any_content_changed_of_module(config_asset)
             .to_resolved()
             .await?,
-        extra_configs_changed(asset_context, postcss_config_path)
+        extra_configs_changed(asset_context, postcss_config_path.clone())
             .to_resolved()
             .await?,
     ])
@@ -362,10 +365,7 @@ pub(crate) async fn config_loader_source(
         return Ok(Vc::upcast(FileSource::new(postcss_config_path)));
     }
 
-    let Some(config_path) = project_path
-        .await?
-        .get_relative_path_to(postcss_config_path_value)
-    else {
+    let Some(config_path) = project_path.get_relative_path_to(postcss_config_path_value) else {
         bail!("Unable to get relative path to postcss config");
     };
 
@@ -389,7 +389,7 @@ pub(crate) async fn config_loader_source(
     };
 
     Ok(Vc::upcast(VirtualSource::new(
-        postcss_config_path.append("_.loader.mjs".into()),
+        postcss_config_path.append("_.loader.mjs".into())?,
         AssetContent::file(File::from(code).into()),
     )))
 }
