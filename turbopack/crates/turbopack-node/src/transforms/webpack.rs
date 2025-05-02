@@ -470,7 +470,7 @@ impl EvaluateContext for WebpackLoaderContext {
             error,
             context_ident: self.context_ident_for_issue,
             assets_for_source_mapping: pool.assets_for_source_mapping,
-            assets_root: pool.assets_root,
+            assets_root: pool.assets_root.clone(),
             root_path: (*self.chunking_context.root_path().await?).clone(),
         }
         .resolved_cell()
