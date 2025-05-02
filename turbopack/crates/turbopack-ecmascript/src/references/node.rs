@@ -46,7 +46,7 @@ impl ValueToString for PackageJsonReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
         Ok(Vc::cell(
-            format!("package.json {}", self.package_json.to_string()).into(),
+            format!("package.json {}", self.package_json).into(),
         ))
     }
 }

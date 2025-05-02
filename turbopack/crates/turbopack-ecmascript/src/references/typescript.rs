@@ -47,9 +47,7 @@ impl ModuleReference for TsConfigReference {
 impl ValueToString for TsConfigReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
-        Ok(Vc::cell(
-            format!("tsconfig {}", self.tsconfig.to_string()).into(),
-        ))
+        Ok(Vc::cell(format!("tsconfig {}", self.tsconfig).into()))
     }
 }
 
