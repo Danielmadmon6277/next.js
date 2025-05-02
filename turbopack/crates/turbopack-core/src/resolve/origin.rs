@@ -65,7 +65,7 @@ where
 
     fn resolve_options(self: Vc<Self>, reference_type: Value<ReferenceType>) -> Vc<ResolveOptions> {
         self.asset_context()
-            .resolve_options(self.origin_path(), reference_type)
+            .resolve_options(self.origin_path().await?, reference_type)
     }
 
     fn with_transition(self: ResolvedVc<Self>, transition: RcStr) -> Vc<Box<dyn ResolveOrigin>> {
@@ -93,7 +93,7 @@ async fn resolve_asset(
         .resolve()
         .await?
         .resolve_asset(
-            resolve_origin.origin_path(),
+            (*resolve_origin.origin_path().await?).clone(),
             request.resolve().await?,
             options.resolve().await?,
             reference_type,
@@ -126,7 +126,7 @@ impl PlainResolveOrigin {
 impl ResolveOrigin for PlainResolveOrigin {
     #[turbo_tasks::function]
     fn origin_path(&self) -> Vc<FileSystemPath> {
-        self.origin_path.clone()
+        self.origin_path.clone().cell()
     }
 
     #[turbo_tasks::function]
