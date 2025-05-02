@@ -1729,8 +1729,8 @@ async fn handle_after_resolve_plugins(
                 (*path).clone(),
                 lookup_path.clone(),
                 reference_type.clone(),
-                request.clone(),
-                options.clone(),
+                request,
+                options,
             )
             .await?
             {
@@ -1836,7 +1836,7 @@ async fn resolve_internal_inline(
                 let results = requests
                     .iter()
                     .map(|req| async {
-                        resolve_internal_inline(lookup_path.clone(), **req, options.clone()).await
+                        resolve_internal_inline(lookup_path.clone(), **req, options).await
                     })
                     .try_join()
                     .await?;
