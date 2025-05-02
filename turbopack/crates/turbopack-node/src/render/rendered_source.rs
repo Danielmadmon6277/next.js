@@ -187,16 +187,16 @@ impl GetContentSourceContent for NodeRenderContentSource {
         };
         let entry = (*self.entry).entry(data.clone()).await?;
         let result_op = render_static_operation(
-            self.cwd,
+            self.cwd.clone(),
             self.env,
             self.server_root.join(path.clone())?,
             ResolvedVc::upcast(entry.module),
             entry.runtime_entries,
             self.fallback_page,
             entry.chunking_context,
-            entry.intermediate_output_path,
-            entry.output_root,
-            entry.project_dir,
+            entry.intermediate_output_path.clone(),
+            entry.output_root.clone(),
+            entry.project_dir.clone(),
             RenderData {
                 params: params.clone(),
                 method: method.clone(),
