@@ -756,8 +756,8 @@ impl Issue for BuildDependencyIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        self.context_ident.path()
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.context_ident.path().clone().cell()
     }
 
     #[turbo_tasks::function]
