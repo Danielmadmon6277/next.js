@@ -869,12 +869,12 @@ pub(crate) async fn analyse_ecmascript_module_internal(
             .cell();
 
             EcmascriptExports::EsmExports(esm_exports.to_resolved().await?)
-        } else if specified_type == SpecifiedModuleType::EcmaScript {
+        } else if *specified_type == SpecifiedModuleType::EcmaScript {
             match detect_dynamic_export(program) {
                 DetectedDynamicExportType::CommonJs => {
                     SpecifiedModuleTypeIssue {
                         path: (*source.ident().path().await?).clone(),
-                        specified_type,
+                        specified_type: *specified_type,
                     }
                     .resolved_cell()
                     .emit();
