@@ -549,11 +549,11 @@ pub(crate) async fn analyse_ecmascript_module_internal(
         referenced_package_json,
     } = *module.determine_module_type().await?;
 
-    if let Some(package_json) = referenced_package_json {
+    if let Some(package_json) = referenced_package_json.clone() {
         let span = tracing::info_span!("package.json reference");
         async {
             analysis.add_reference(
-                PackageJsonReference::new(*package_json)
+                PackageJsonReference::new(package_json)
                     .to_resolved()
                     .await?,
             );
@@ -3033,7 +3033,11 @@ async fn require_context_visitor(
         }
     };
 
-    let dir = origin.origin_path().parent().join(options.dir.clone());
+    let dir = origin
+        .origin_path()
+        .await?
+        .parent()
+        .join(options.dir.clone())?;
 
     let map = RequireContextMap::generate(
         origin,
