@@ -52,7 +52,7 @@ impl ContextCondition {
                     .await
             }
             ContextCondition::Not(condition) => Box::pin(condition.matches(path)).await.map(|b| !b),
-            ContextCondition::InPath(other_path) => Ok(path.is_inside_or_equal_ref(&other_path)),
+            ContextCondition::InPath(other_path) => Ok(path.is_inside_or_equal_ref(other_path)),
             ContextCondition::InDirectory(dir) => Ok(path.path.starts_with(&format!("{dir}/"))
                 || path.path.contains(&format!("/{dir}/"))
                 || path.path.ends_with(&format!("/{dir}"))
