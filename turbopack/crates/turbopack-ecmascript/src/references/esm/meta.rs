@@ -7,7 +7,7 @@ use swc_core::{
     ecma::ast::{Expr, Ident},
     quote,
 };
-use turbo_tasks::{debug::ValueDebugFormat, trace::TraceRawVcs, NonLocalValue, ResolvedVc, Vc};
+use turbo_tasks::{debug::ValueDebugFormat, trace::TraceRawVcs, NonLocalValue, Vc};
 use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{chunk::ChunkingContext, module_graph::ModuleGraph};
 
@@ -43,7 +43,7 @@ impl ImportMetaBinding {
         let rel_path = chunking_context
             .root_path()
             .await?
-            .get_relative_path_to(&*self.path.await?);
+            .get_relative_path_to(&self.path);
         let path = rel_path.map_or_else(
             || {
                 quote!(
