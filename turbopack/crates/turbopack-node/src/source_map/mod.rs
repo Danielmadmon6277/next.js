@@ -246,13 +246,13 @@ async fn resolve_source_mapping(
                 if lib_code {
                     return Ok(ResolvedSourceMapping::MappedLibrary {
                         frame: frame.clone(),
-                        project_path: fs_path.await?,
+                        project_path: fs_path.clone(),
                     });
                 } else {
                     let lines = fs_path.read().lines().await?;
                     return Ok(ResolvedSourceMapping::MappedProject {
                         frame: frame.clone(),
-                        project_path: fs_path.await?,
+                        project_path: fs_path.clone(),
                         lines,
                     });
                 }
