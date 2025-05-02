@@ -2127,7 +2127,7 @@ async fn resolve_into_folder(
     for resolve_into_package in options_value.into_package.iter() {
         match resolve_into_package {
             ResolveIntoPackage::MainField { field: name } => {
-                if let Some(package_json) = &*read_package_json(package_json_path).await? {
+                if let Some(package_json) = &*read_package_json(package_json_path.clone()).await? {
                     if let Some(field_value) = package_json[name.as_str()].as_str() {
                         let normalized_request: RcStr = normalize_request(field_value).into();
                         if normalized_request.is_empty()
@@ -2293,7 +2293,7 @@ async fn resolve_relative_request(
 
     let mut results = Vec::new();
     let matches = read_matches(
-        lookup_path,
+        lookup_path.clone(),
         "".into(),
         force_in_lookup_dir,
         Pattern::new(new_path).resolve().await?,
@@ -2320,7 +2320,7 @@ async fn resolve_relative_request(
                                 resolved(
                                     RequestKey::new(matched_pattern.into()),
                                     path.clone(),
-                                    lookup_path,
+                                    lookup_path.clone(),
                                     request,
                                     options_value,
                                     options,
@@ -2337,7 +2337,7 @@ async fn resolve_relative_request(
                             resolved(
                                 RequestKey::new(matched_pattern.into()),
                                 path.clone(),
-                                lookup_path,
+                                lookup_path.clone(),
                                 request,
                                 options_value,
                                 options,
@@ -2360,7 +2360,7 @@ async fn resolve_relative_request(
                         resolved(
                             RequestKey::new(matched_pattern.into()),
                             path.clone(),
-                            lookup_path,
+                            lookup_path.clone(),
                             request,
                             options_value,
                             options,
@@ -2378,7 +2378,7 @@ async fn resolve_relative_request(
                     resolved(
                         RequestKey::new(matched_pattern.clone()),
                         path.clone(),
-                        lookup_path,
+                        lookup_path.clone(),
                         request,
                         options_value,
                         options,
@@ -2435,9 +2435,9 @@ async fn apply_in_package(
             continue;
         };
 
-        let package_path = package_json_path.parent().resolve().await?;
+        let package_path = package_json_path.parent();
 
-        let Some(request) = get_request(&*package_path.await?) else {
+        let Some(request) = get_request(&package_path) else {
             continue;
         };
 
