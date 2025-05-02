@@ -1962,7 +1962,7 @@ async fn resolve_internal_inline(
                 }
 
                 Box::pin(resolve_internal_inline(
-                    lookup_path.root(),
+                    (*lookup_path.root().await?).clone(),
                     relative,
                     options,
                 ))
@@ -2069,7 +2069,7 @@ async fn resolve_internal_inline(
                         severity: error_severity(options).await?,
                         request_type: format!("unknown import: `{}`", path),
                         request: request.to_resolved().await?,
-                        file_path: lookup_path.to_resolved().await?,
+                        file_path: lookup_path.clone(),
                         resolve_options: options.to_resolved().await?,
                         error_message: None,
                         source: None,
