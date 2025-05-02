@@ -1380,7 +1380,7 @@ pub async fn read_matches(
                         } else {
                             lookup_dir.try_join(parent_path.into())?
                         };
-                        let Some(fs_path) = *joined else {
+                        let Some(fs_path) = joined else {
                             continue;
                         };
                         results.push((
@@ -1393,10 +1393,10 @@ pub async fn read_matches(
                     let read_dir = match entry {
                         Entry::Occupied(e) => Some(e.into_mut()),
                         Entry::Vacant(e) => {
-                            let path_option = *if force_in_lookup_dir {
-                                lookup_dir.try_join_inside(parent_path.into()).await?
+                            let path_option = if force_in_lookup_dir {
+                                lookup_dir.try_join_inside(parent_path.into())?
                             } else {
-                                lookup_dir.try_join(parent_path.into()).await?
+                                lookup_dir.try_join(parent_path.into())?
                             };
                             if let Some(path) = path_option {
                                 Some(e.insert((path.raw_read_dir().await?, path)))
@@ -1420,10 +1420,7 @@ pub async fn read_matches(
                                 index,
                                 PatternMatch::File(
                                     concat(&prefix, str).into(),
-                                    parent_fs_path
-                                        .join(last_segment.into())
-                                        .to_resolved()
-                                        .await?,
+                                    parent_fs_path.join(last_segment.into())?,
                                 ),
                             ));
                         }
@@ -1431,10 +1428,7 @@ pub async fn read_matches(
                             index,
                             PatternMatch::Directory(
                                 concat(&prefix, str).into(),
-                                parent_fs_path
-                                    .join(last_segment.into())
-                                    .to_resolved()
-                                    .await?,
+                                parent_fs_path.join(last_segment.into())?,
                             ),
                         )),
                         RawDirectoryEntry::Symlink => {
@@ -1657,8 +1651,7 @@ pub async fn read_matches(
                                     }
                                 }
                                 if let Some(pos) = pat.could_match_position(&prefix) {
-                                    let fs_path =
-                                        lookup_dir.join(key.clone()).to_resolved().await?;
+                                    let fs_path = lookup_dir.join(key.clone());
                                     if let LinkContent::Link { link_type, .. } =
                                         &*fs_path.read_link().await?
                                     {
