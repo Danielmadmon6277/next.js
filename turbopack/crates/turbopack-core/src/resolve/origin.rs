@@ -70,8 +70,9 @@ where
         self: Vc<Self>,
         reference_type: Value<ReferenceType>,
     ) -> Result<Vc<ResolveOptions>> {
-        self.asset_context()
-            .resolve_options(self.origin_path().await?, reference_type)
+        Ok(self
+            .asset_context()
+            .resolve_options((*self.origin_path().await?).clone(), reference_type))
     }
 
     fn with_transition(self: ResolvedVc<Self>, transition: RcStr) -> Vc<Box<dyn ResolveOrigin>> {
