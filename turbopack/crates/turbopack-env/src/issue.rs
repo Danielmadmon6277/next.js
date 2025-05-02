@@ -22,8 +22,8 @@ impl Issue for ProcessEnvIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.path.cell()
     }
 
     #[turbo_tasks::function]

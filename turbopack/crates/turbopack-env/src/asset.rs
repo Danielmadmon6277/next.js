@@ -36,8 +36,8 @@ impl ProcessEnvAsset {
 #[turbo_tasks::value_impl]
 impl Source for ProcessEnvAsset {
     #[turbo_tasks::function]
-    fn ident(&self) -> Vc<AssetIdent> {
-        AssetIdent::from_path(self.root.join(".env.js".into()))
+    fn ident(&self) -> Result<Vc<AssetIdent>> {
+        AssetIdent::from_path(self.root.join(".env.js".into())?)
     }
 }
 
