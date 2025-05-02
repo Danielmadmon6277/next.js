@@ -2785,12 +2785,12 @@ async fn resolve_import_map_result(
 
             // We must avoid cycles during resolving
             if request.resolve().await? == original_request
-                && **alias_lookup_path == original_lookup_path
+                && *alias_lookup_path == original_lookup_path
             {
                 None
             } else {
                 let is_external_resolvable = !resolve_internal(
-                    **alias_lookup_path,
+                    alias_lookup_path.clone(),
                     request,
                     match ty {
                         ExternalType::Url => options,

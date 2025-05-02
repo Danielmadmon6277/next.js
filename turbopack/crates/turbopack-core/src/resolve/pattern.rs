@@ -1460,7 +1460,7 @@ pub async fn read_matches(
                         nested.push((
                             0,
                             read_matches(
-                                *fs_path,
+                                fs_path,
                                 concat(&prefix, subpath).into(),
                                 force_in_lookup_dir,
                                 pattern,

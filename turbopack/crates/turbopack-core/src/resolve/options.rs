@@ -161,7 +161,9 @@ impl ImportMapping {
         } else {
             ImportMapping::Alternatives(
                 list.into_iter()
-                    .map(|s| ImportMapping::PrimaryAlternative(s, lookup_path).resolved_cell())
+                    .map(|s| {
+                        ImportMapping::PrimaryAlternative(s, lookup_path.clone()).resolved_cell()
+                    })
                     .collect(),
             )
         }
@@ -251,21 +253,21 @@ impl AliasTemplate for Vc<ImportMapping> {
                             name: capture.spread_into_star(name).as_string().map(|s| s.into()),
                             ty: *ty,
                             traced: *traced,
-                            lookup_dir: *lookup_dir,
+                            lookup_dir: lookup_dir.clone(),
                         }
                     } else {
                         ReplacedImportMapping::PrimaryAlternativeExternal {
                             name: None,
                             ty: *ty,
                             traced: *traced,
-                            lookup_dir: *lookup_dir,
+                            lookup_dir: lookup_dir.clone(),
                         }
                     }
                 }
                 ImportMapping::PrimaryAlternative(name, lookup_dir) => {
                     ReplacedImportMapping::PrimaryAlternative(
                         capture.spread_into_star(name),
-                        *lookup_dir,
+                        lookup_dir.clone(),
                     )
                 }
                 ImportMapping::Direct(v) => ReplacedImportMapping::Direct(*v),
