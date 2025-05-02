@@ -216,7 +216,7 @@ impl ValueToString for IssueProcessingPathItem {
         if let Some(context) = &self.file_path {
             let description_str = self.description.await?;
             Ok(Vc::cell(
-                format!("{} ({})", context.to_string(), description_str).into(),
+                format!("{} ({})", context, description_str).into(),
             ))
         } else {
             Ok(*self.description)
@@ -229,11 +229,7 @@ impl IssueProcessingPathItem {
     #[turbo_tasks::function]
     pub async fn into_plain(&self) -> Result<Vc<PlainIssueProcessingPathItem>> {
         Ok(PlainIssueProcessingPathItem {
-            file_path: if let Some(context) = &self.file_path {
-                Some(context.path.clone())
-            } else {
-                None
-            },
+            file_path: self.file_path.as_ref().map(|context| context.path.clone()),
             description: self.description.await?,
         }
         .cell())
@@ -897,10 +893,7 @@ where
                     ItemIssueProcessingPath::resolved_cell(ItemIssueProcessingPath(
                         Some(IssueProcessingPathItem::resolved_cell(
                             IssueProcessingPathItem {
-                                file_path: match file_path.into() {
-                                    Some(path) => Some(path),
-                                    None => None,
-                                },
+                                file_path: file_path.into(),
                                 description: ResolvedVc::cell(RcStr::from(description.into())),
                             },
                         )),
@@ -930,7 +923,7 @@ where
                     ItemIssueProcessingPath::resolved_cell(ItemIssueProcessingPath(
                         Some(IssueProcessingPathItem::resolved_cell(
                             IssueProcessingPathItem {
-                                file_path: file_path.into().map(|path| path),
+                                file_path: file_path.into(),
                                 description: ResolvedVc::cell(RcStr::from(description.into())),
                             },
                         )),
