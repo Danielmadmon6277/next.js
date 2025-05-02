@@ -389,7 +389,7 @@ pub(crate) async fn config_loader_source(
     };
 
     Ok(Vc::upcast(VirtualSource::new(
-        postcss_config_path.append("_.loader.mjs".into())?,
+        postcss_config_path.append("_.loader.mjs".into())?.cell(),
         AssetContent::file(File::from(code).into()),
     )))
 }
@@ -411,7 +411,7 @@ async fn postcss_executor(
 
     Ok(asset_context.process(
         Vc::upcast(VirtualSource::new(
-            postcss_config_path.join("transform.ts".into())?,
+            postcss_config_path.join("transform.ts".into())?.cell(),
             AssetContent::File(
                 embed_file("transforms/postcss.ts".into())
                     .to_resolved()
