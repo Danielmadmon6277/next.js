@@ -264,13 +264,13 @@ pub async fn tsconfig_resolve_options(
     for (content, source) in configs.iter().rev() {
         if let FileJsonContent::Content(json) = &*content.await? {
             if let JsonValue::Object(paths) = &json["compilerOptions"]["paths"] {
-                let mut context_dir = source.ident().path().parent();
+                let mut context_dir = source.ident().path().await?.parent();
                 if let Some(base_url) = json["compilerOptions"]["baseUrl"].as_str() {
-                    if let Some(new_context) = *context_dir.try_join(base_url.into()).await? {
-                        context_dir = *new_context;
+                    if let Some(new_context) = context_dir.try_join(base_url.into())? {
+                        context_dir = new_context;
                     }
                 };
-                let context_dir = context_dir.to_resolved().await?;
+                let context_dir = context_dir.clone();
                 for (key, value) in paths.iter() {
                     if let JsonValue::Array(vec) = value {
                         let entries = vec
@@ -390,8 +390,8 @@ pub async fn type_resolve(
     let ty = Value::new(ReferenceType::TypeScript(
         TypeScriptReferenceSubType::Undefined,
     ));
-    let context_path = origin.origin_path().parent();
-    let options = origin.resolve_options(ty.clone());
+    let context_path = origin.origin_path().await?.parent();
+    let options = origin.resolve_options(ty.clone()).await?;
     let options = apply_typescript_types_options(options);
     let types_request = if let Request::Module {
         module: m,
@@ -414,10 +414,10 @@ pub async fn type_resolve(
     } else {
         None
     };
-    let context_path = context_path.resolve().await?;
+    let context_path = context_path.clone();
     let result = if let Some(types_request) = types_request {
         let result1 = resolve(
-            context_path,
+            context_path.clone(),
             Value::new(ReferenceType::TypeScript(
                 TypeScriptReferenceSubType::Undefined,
             )),
@@ -454,7 +454,7 @@ pub async fn type_resolve(
     handle_resolve_error(
         result,
         ty,
-        origin.origin_path(),
+        (*origin.origin_path().await?).clone(),
         request,
         options,
         false,
@@ -525,7 +525,7 @@ impl Issue for TsConfigIssue {
 
     #[turbo_tasks::function]
     fn file_path(&self) -> Vc<FileSystemPath> {
-        self.source_ident.path().cell()
+        self.source_ident.path()
     }
 
     #[turbo_tasks::function]
