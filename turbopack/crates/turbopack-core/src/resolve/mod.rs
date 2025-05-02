@@ -2548,7 +2548,7 @@ async fn resolve_module_request(
 ) -> Result<Vc<ResolveResult>> {
     // Check alias field for module aliases first
     if let Some(result) = apply_in_package(
-        lookup_path,
+        lookup_path.clone(),
         options,
         options_value,
         |_| {
@@ -2702,7 +2702,7 @@ async fn resolve_into_package(
                     handle_exports_imports_field(
                         package_path.clone(),
                         package_json_path,
-                        options,
+                        *options,
                         exports_field,
                         &path,
                         conditions,
@@ -2722,7 +2722,7 @@ async fn resolve_into_package(
     // apply main field(s) or fallback to index.js if there's no subpath
     if is_root_match {
         results.push(resolve_into_folder(
-            *package_path,
+            package_path.clone(),
             options.with_fully_specified(false),
         ));
     }
@@ -2734,7 +2734,7 @@ async fn resolve_into_package(
         let relative = Request::relative(Value::new(new_pat), query, fragment, true)
             .to_resolved()
             .await?;
-        results.push(resolve_internal_inline(*package_path, *relative, *options).await?);
+        results.push(resolve_internal_inline(package_path.clone(), *relative, *options).await?);
     }
 
     Ok(merge_results(results))
@@ -2754,7 +2754,7 @@ async fn resolve_import_map_result(
         ImportMapResult::Alias(request, alias_lookup_path) => {
             let request = **request;
             let lookup_path = match alias_lookup_path {
-                Some(path) => **path,
+                Some(path) => path.clone(),
                 None => lookup_path,
             };
             // We must avoid cycles during resolving
