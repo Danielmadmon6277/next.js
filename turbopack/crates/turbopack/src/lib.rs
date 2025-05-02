@@ -483,7 +483,7 @@ async fn process_default_internal(
     let ident = source.ident().resolve().await?;
     let path_ref = ident.path().await?;
     let options = ModuleOptions::new(
-        ident.path().parent(),
+        ident.path().await?.parent(),
         module_asset_context.module_options_context(),
         module_asset_context.resolve_options_context(),
     );
@@ -714,7 +714,7 @@ impl AssetContext for ModuleAssetContext {
         };
         // TODO move `apply_commonjs/esm_resolve_options` etc. to here
         Ok(resolve_options(
-            origin_path.parent().resolve().await?,
+            (*origin_path.parent().await?).clone(),
             *module_asset_context.await?.resolve_options_context,
         ))
     }
