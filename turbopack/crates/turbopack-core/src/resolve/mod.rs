@@ -1673,7 +1673,7 @@ async fn handle_before_resolve_plugins(
         }
 
         if let Some(result) = *plugin
-            .before_resolve(lookup_path, reference_type.clone(), request)
+            .before_resolve(lookup_path.clone(), reference_type.clone(), request)
             .await?
         {
             return Ok(Some(*result));
@@ -1724,9 +1724,9 @@ async fn handle_after_resolve_plugins(
 
     for (key, primary) in result_value.primary.iter() {
         if let &ResolveResultItem::Source(source) = primary {
-            let path = source.ident().path().resolve().await?;
+            let path = source.ident().path().resolve().await?.await?;
             if let Some(new_result) = apply_plugins_to_path(
-                path.clone(),
+                (*path).clone(),
                 lookup_path.clone(),
                 reference_type.clone(),
                 request.clone(),
@@ -1771,7 +1771,7 @@ async fn resolve_internal(
     request: ResolvedVc<Request>,
     options: ResolvedVc<ResolveOptions>,
 ) -> Result<Vc<ResolveResult>> {
-    resolve_internal_inline(*lookup_path, *request, *options).await
+    resolve_internal_inline(lookup_path, *request, *options).await
 }
 
 async fn resolve_internal_inline(
@@ -1780,7 +1780,7 @@ async fn resolve_internal_inline(
     options: Vc<ResolveOptions>,
 ) -> Result<Vc<ResolveResult>> {
     let span = {
-        let lookup_path = lookup_path.to_string().await?.to_string();
+        let lookup_path = lookup_path.to_string();
         let request = request.to_string().await?.to_string();
         tracing::info_span!(
             "internal resolving",
@@ -1859,7 +1859,7 @@ async fn resolve_internal_inline(
                             results.push(
                                 resolved(
                                     RequestKey::new(matched_pattern.clone()),
-                                    **path,
+                                    path.clone(),
                                     lookup_path,
                                     request,
                                     options_value,
@@ -1872,7 +1872,7 @@ async fn resolve_internal_inline(
                         }
                         PatternMatch::Directory(matched_pattern, path) => {
                             results.push(
-                                resolve_into_folder(**path, options)
+                                resolve_into_folder(path.clone(), options)
                                     .with_request(matched_pattern.clone()),
                             );
                         }
@@ -2193,7 +2193,7 @@ async fn resolve_relative_request(
     fragment: Vc<RcStr>,
 ) -> Result<Vc<ResolveResult>> {
     // Check alias field for aliases first
-    let lookup_path_ref = &*lookup_path.await?;
+    let lookup_path_ref = &*lookup_path;
     if let Some(result) = apply_in_package(
         lookup_path,
         options,
