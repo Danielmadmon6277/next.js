@@ -5,7 +5,7 @@ use const_format::concatcp;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use turbo_tasks::{ValueToString, Vc};
+use turbo_tasks::Vc;
 use turbo_tasks_fs::{
     rope::Rope, util::uri_from_file, DiskFileSystem, FileContent, FileSystemPath,
 };
