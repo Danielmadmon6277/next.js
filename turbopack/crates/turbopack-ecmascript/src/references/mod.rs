@@ -698,9 +698,9 @@ pub(crate) async fn analyse_ecmascript_module_internal(
                     static ref JSON_DATA_URL_BASE64: Regex =
                         Regex::new(r"^data:application\/json;(?:charset=utf-8;)?base64").unwrap();
                 }
-                let origin_path = origin.origin_path();
+                let origin_path = (*origin.origin_path().await?).clone();
                 if path.ends_with(".map") {
-                    let source_map_origin = origin_path.parent().join(path.into());
+                    let source_map_origin = origin_path.parent().join(path.into())?;
                     let reference = SourceMapReference::new(origin_path, source_map_origin)
                         .to_resolved()
                         .await?;
@@ -1434,7 +1434,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
                     if analysis_state.first_import_meta {
                         analysis_state.first_import_meta = false;
                         analysis.add_code_gen(ImportMetaBinding::new(
-                            source.ident().path().to_resolved().await?,
+                            (*source.ident().path().await?).clone(),
                         ));
                     }
 
