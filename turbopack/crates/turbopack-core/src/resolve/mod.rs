@@ -1948,7 +1948,7 @@ async fn resolve_internal_inline(
                         severity: error_severity(options).await?,
                         request_type: "server relative import: not implemented yet".to_string(),
                         request: relative.to_resolved().await?,
-                        file_path: lookup_path.to_resolved().await?,
+                        file_path: lookup_path.clone(),
                         resolve_options: options.to_resolved().await?,
                         error_message: Some(
                             "server relative imports are not implemented yet. Please try an \
