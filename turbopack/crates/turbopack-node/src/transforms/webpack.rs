@@ -882,8 +882,8 @@ pub struct EvaluateErrorLoggingIssue {
 #[turbo_tasks::value_impl]
 impl Issue for EvaluateErrorLoggingIssue {
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.file_path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.file_path.clone().cell()
     }
 
     #[turbo_tasks::function]
