@@ -232,6 +232,23 @@ impl ValueDefault for TsConfigResolveOptions {
     }
 }
 
+#[turbo_tasks::value(transparent)]
+struct OptionFileSystemPath(Option<FileSystemPath>);
+
+#[turbo_tasks::function]
+async fn join_base_url(
+    base_url: RcStr,
+    source: ResolvedVc<Box<dyn Source>>,
+) -> Result<Vc<OptionFileSystemPath>> {
+    let parent = source
+        .ident()
+        .path()
+        .await?
+        .parent()
+        .try_join(base_url.into())?;
+    Ok(Vc::cell(parent))
+}
+
 /// Returns the resolve options
 #[turbo_tasks::function]
 pub async fn tsconfig_resolve_options(
@@ -239,7 +256,7 @@ pub async fn tsconfig_resolve_options(
 ) -> Result<Vc<TsConfigResolveOptions>> {
     let configs = read_tsconfigs(
         tsconfig.read(),
-        ResolvedVc::upcast(FileSource::new(tsconfig).to_resolved().await?),
+        ResolvedVc::upcast(FileSource::new(tsconfig.clone()).to_resolved().await?),
         node_cjs_resolve_options((*tsconfig.root().await?).clone()),
     )
     .await?;
@@ -251,11 +268,11 @@ pub async fn tsconfig_resolve_options(
     let base_url = if let Some(base_url) = read_from_tsconfigs(&configs, |json, source| {
         json["compilerOptions"]["baseUrl"]
             .as_str()
-            .map(|base_url| source.ident().path().parent().try_join(base_url.into())?)
+            .map(|base_url| join_base_url(base_url.into(), *source))
     })
     .await?
     {
-        *base_url.await?
+        (*base_url.await?).clone()
     } else {
         None
     };
@@ -294,7 +311,7 @@ pub async fn tsconfig_resolve_options(
                             .collect();
                         all_paths.insert(
                             key.to_string(),
-                            ImportMapping::primary_alternatives(entries, Some(context_dir)),
+                            ImportMapping::primary_alternatives(entries, Some(context_dir.clone())),
                         );
                     } else {
                         TsConfigIssue {
