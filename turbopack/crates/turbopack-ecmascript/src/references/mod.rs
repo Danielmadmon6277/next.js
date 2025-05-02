@@ -527,7 +527,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
     let origin = ResolvedVc::upcast::<Box<dyn ResolveOrigin>>(module);
 
     let mut analysis = AnalyzeEcmascriptModuleResultBuilder::new();
-    let path = origin.origin_path();
+    let path = (*origin.origin_path().await?).clone();
 
     // Is this a typescript file that requires analzying type references?
     let analyze_types = match &*ty {
@@ -569,7 +569,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
             match &*find_context_file(path.parent(), tsconfig()).await? {
                 FindContextFileResult::Found(tsconfig, _) => {
                     analysis.add_reference(
-                        TsConfigReference::new(*origin, **tsconfig)
+                        TsConfigReference::new(*origin, tsconfig.clone())
                             .to_resolved()
                             .await?,
                     );
@@ -582,7 +582,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
         .await?;
     }
 
-    special_cases(&path.await?.path, &mut analysis);
+    special_cases(&path.path, &mut analysis);
 
     let parsed = parsed.await?;
 
