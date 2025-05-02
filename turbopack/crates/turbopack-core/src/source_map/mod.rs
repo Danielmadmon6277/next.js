@@ -492,12 +492,15 @@ impl SourceMap {
                         .collect::<Vec<_>>();
                     let sections = sections
                         .into_iter()
-                        .map(|(offset, map)| async move {
-                            Ok((
-                                offset,
-                                Box::pin(decoded_map_with_resolved_sources(map, origin.clone()))
-                                    .await?,
-                            ))
+                        .map(|(offset, map)| {
+                            let origin = origin.clone();
+                            async move {
+                                Ok((
+                                    offset,
+                                    Box::pin(decoded_map_with_resolved_sources(map, origin))
+                                        .await?,
+                                ))
+                            }
                         })
                         .try_join()
                         .await?;
