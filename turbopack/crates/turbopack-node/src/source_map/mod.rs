@@ -192,12 +192,12 @@ enum ResolvedSourceMapping {
     },
     MappedProject {
         frame: StackFrame<'static>,
-        project_path: ReadRef<FileSystemPath>,
+        project_path: FileSystemPath,
         lines: ReadRef<FileLinesContent>,
     },
     MappedLibrary {
         frame: StackFrame<'static>,
-        project_path: ReadRef<FileSystemPath>,
+        project_path: FileSystemPath,
     },
 }
 
@@ -299,8 +299,13 @@ impl StructuredError {
 
         for frame in &self.stack {
             let frame = frame.unmangle_identifiers(magic);
-            let resolved =
-                resolve_source_mapping(assets_for_source_mapping, root, root_path, &frame).await;
+            let resolved = resolve_source_mapping(
+                assets_for_source_mapping,
+                root.clone(),
+                root_path.clone(),
+                &frame,
+            )
+            .await;
             write_resolved(
                 &mut message,
                 resolved,
@@ -334,7 +339,8 @@ pub async fn trace_stack(
     output_path: FileSystemPath,
     project_dir: FileSystemPath,
 ) -> Result<String> {
-    let assets_for_source_mapping = internal_assets_for_source_mapping(root_asset, output_path);
+    let assets_for_source_mapping =
+        internal_assets_for_source_mapping(root_asset.clone(), output_path.clone());
 
     trace_stack_with_source_mapping_assets(
         error,
