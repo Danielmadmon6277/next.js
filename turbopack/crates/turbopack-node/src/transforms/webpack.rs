@@ -189,12 +189,9 @@ async fn webpack_loaders_executor(
     evaluate_context: Vc<Box<dyn AssetContext>>,
 ) -> Result<Vc<ProcessResult>> {
     Ok(evaluate_context.process(
-        Vc::upcast(
-            FileSource::new(
-                (*embed_file_path("transforms/webpack-loaders.ts".into()).await?).clone(),
-            )
-            .clone(),
-        ),
+        Vc::upcast(FileSource::new(
+            (*embed_file_path("transforms/webpack-loaders.ts".into()).await?).clone(),
+        )),
         Value::new(ReferenceType::Internal(
             InnerAssets::empty().to_resolved().await?,
         )),
@@ -504,7 +501,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     .try_join();
                 let file_subscriptions = file_paths
                     .iter()
-                    .map(|p| async move { Ok(self.cwd.join(p.clone())?.read().await?) })
+                    .map(|p| async move { self.cwd.join(p.clone())?.read().await })
                     .try_join();
                 let directory_subscriptions = directories
                     .iter()
@@ -514,12 +511,12 @@ impl EvaluateContext for WebpackLoaderContext {
                         // option that will track all files the way
                         // `dir_dependency` does but in a single traversal.
                         async move {
-                            Ok(dir_dependency(
+                            dir_dependency(
                                 self.cwd
                                     .join(dir.clone())?
                                     .read_glob(Glob::new(glob.clone()), false),
                             )
-                            .await?)
+                            .await
                         }
                     })
                     .try_join();
@@ -799,7 +796,7 @@ async fn dir_dependency_shallow(glob: Vc<ReadGlobResult>) -> Result<Vc<Completio
     let glob = glob.await?;
     for item in glob.results.values() {
         // Reading all files to add itself as dependency
-        match &*item {
+        match item {
             DirectoryEntry::File(file) => {
                 file.read().await?;
             }
