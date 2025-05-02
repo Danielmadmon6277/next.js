@@ -78,7 +78,8 @@ impl OutputAsset for SourceMapAsset {
                 ident_for_path,
             } => chunking_context
                 .chunk_path(Some(Vc::upcast(self)), *ident_for_path, ".js".into())
-                .append(".map".into()),
+                .await?
+                .append(".map".into())?,
             PathType::Fixed { path } => path.append(".map".into()),
         })
     }
