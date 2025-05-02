@@ -122,11 +122,7 @@ async fn emit_evaluate_pool_assets_operation(
     let entry_module = asset_context
         .process(
             Vc::upcast(VirtualSource::new(
-                runtime_asset
-                    .ident()
-                    .path()
-                    .await?
-                    .join("evaluate.js".into())?,
+                runtime_asset.ident().path().join_vc("evaluate.js".into()),
                 AssetContent::file(
                     File::from("import { run } from 'RUNTIME'; run(() => import('INNER'))").into(),
                 ),
