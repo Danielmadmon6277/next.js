@@ -376,9 +376,14 @@ async fn render_stream_internal(
                     // We have already started to send a result, so we can't change the
                     // headers/body to a proxy error.
                     operation.disallow_reuse();
-                    let trace =
-                        trace_stack(error, *intermediate_asset, *intermediate_output_path, *project_dir).await?;
-                        drop(guard);
+                    let trace = trace_stack(
+                        error,
+                        *intermediate_asset,
+                        intermediate_output_path.clone(),
+                        project_dir.clone(),
+                    )
+                    .await?;
+                    drop(guard);
                     Err(anyhow!("error during streaming render: {}", trace))?;
                     return;
                 }
