@@ -2089,7 +2089,10 @@ async fn resolve_internal_inline(
         // Apply fallback import mappings if provided
         if let Some(import_map) = &options_value.fallback_import_map {
             if *result.is_unresolvable().await? {
-                let result = import_map.await?.lookup(lookup_path, request).await?;
+                let result = import_map
+                    .await?
+                    .lookup(lookup_path.clone(), request)
+                    .await?;
                 let resolved_result = resolve_import_map_result(
                     &result,
                     lookup_path.clone(),
@@ -2118,7 +2121,7 @@ async fn resolve_into_folder(
     package_path: FileSystemPath,
     options: Vc<ResolveOptions>,
 ) -> Result<Vc<ResolveResult>> {
-    let package_json_path = package_path.join("package.json".into());
+    let package_json_path = package_path.join("package.json".into())?;
     let options_value = options.await?;
 
     for resolve_into_package in options_value.into_package.iter() {
