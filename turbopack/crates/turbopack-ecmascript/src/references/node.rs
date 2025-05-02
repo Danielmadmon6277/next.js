@@ -97,7 +97,7 @@ async fn resolve_reference_from_dir(
         (Some(abs_path), None) => Either::Left(
             // absolute path only
             read_matches(
-                parent_path.root().resolve().await?,
+                (*parent_path.root().await?).clone(),
                 "/ROOT/".into(),
                 true,
                 Pattern::new(abs_path.or_any_nested_file()),
@@ -151,7 +151,7 @@ async fn resolve_reference_from_dir(
 impl ModuleReference for DirAssetReference {
     #[turbo_tasks::function]
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
-        let parent_path = self.source.ident().path().parent();
+        let parent_path = self.source.ident().path().await?.parent();
         Ok(resolve_reference_from_dir(
             parent_path.resolve().await?,
             *self.path,
