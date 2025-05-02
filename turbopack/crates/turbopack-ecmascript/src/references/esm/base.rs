@@ -460,7 +460,7 @@ impl Issue for InvalidExport {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
+    fn file_path(&self) -> Vc<FileSystemPath> {
         self.source.file_path()
     }
 
