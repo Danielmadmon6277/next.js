@@ -62,9 +62,13 @@ pub async fn apply_source_mapping(
             line: Some(line),
             column: Some(column),
         };
-        let resolved =
-            resolve_source_mapping(assets_for_source_mapping, root, project_dir.root(), &frame)
-                .await;
+        let resolved = resolve_source_mapping(
+            assets_for_source_mapping,
+            root.clone(),
+            (*project_dir.root().await?).clone(),
+            &frame,
+        )
+        .await;
         write_resolved(
             &mut new,
             resolved,
@@ -238,7 +242,7 @@ async fn resolve_source_mapping(
                 PROJECT_FILESYSTEM_NAME,
                 "]/"
             )) {
-                let fs_path = project_dir.join(project_path.into());
+                let fs_path = project_dir.join(project_path.into())?;
                 if lib_code {
                     return Ok(ResolvedSourceMapping::MappedLibrary {
                         frame: frame.clone(),
