@@ -1376,9 +1376,9 @@ pub async fn read_matches(
                     if last_segment.is_empty() {
                         // This means we don't have a last segment, so we just have a directory
                         let joined = if force_in_lookup_dir {
-                            lookup_dir.try_join_inside(parent_path.into()).await?
+                            lookup_dir.try_join_inside(parent_path.into())?
                         } else {
-                            lookup_dir.try_join(parent_path.into()).await?
+                            lookup_dir.try_join(parent_path.into())?
                         };
                         let Some(fs_path) = *joined else {
                             continue;
