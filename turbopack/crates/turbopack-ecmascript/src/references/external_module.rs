@@ -126,7 +126,7 @@ impl Module for CachedExternalModule {
         let fs = VirtualFileSystem::new_with_name("externals".into());
 
         Ok(
-            AssetIdent::from_path(fs.root().await?.join(self.request.clone()))
+            AssetIdent::from_path(fs.root().await?.join(self.request.clone())?)
                 .with_layer(layer())
                 .with_modifier(Vc::cell(self.request.clone()))
                 .with_modifier(Vc::cell(self.external_type.to_string().into())),
