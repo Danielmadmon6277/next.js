@@ -28,7 +28,7 @@ impl ModuleReference for FileSourceReference {
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
         let context_dir = self.source.ident().path().await?.parent();
 
-        resolve_raw(context_dir, *self.path, false).as_raw_module_result()
+        Ok(resolve_raw(context_dir, *self.path, false).as_raw_module_result())
     }
 }
 
