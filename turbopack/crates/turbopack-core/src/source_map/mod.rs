@@ -410,7 +410,7 @@ impl SourceMap {
             origin: FileSystemPath,
         ) -> Result<(Arc<str>, Arc<str>)> {
             Ok(
-                if let Some(path) = *origin.parent().try_join((&*source_request).into()).await? {
+                if let Some(path) = *origin.parent().try_join((&*source_request).into())? {
                     let path_str = path.to_string().await?;
                     let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
                     let source_content = if let Some(source_content) = source_content {
@@ -423,7 +423,7 @@ impl SourceMap {
                     };
                     (source.into(), source_content)
                 } else {
-                    let origin_str = origin.to_string().await?;
+                    let origin_str = origin.to_string();
                     static INVALID_REGEX: Lazy<Regex> =
                         Lazy::new(|| Regex::new(r#"(?:^|/)(?:\.\.?(?:/|$))+"#).unwrap());
                     let source = INVALID_REGEX
@@ -495,7 +495,8 @@ impl SourceMap {
                         .map(|(offset, map)| async move {
                             Ok((
                                 offset,
-                                Box::pin(decoded_map_with_resolved_sources(map, origin)).await?,
+                                Box::pin(decoded_map_with_resolved_sources(map, origin.clone()))
+                                    .await?,
                             ))
                         })
                         .try_join()
