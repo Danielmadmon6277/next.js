@@ -48,8 +48,8 @@ fn dev_html_chunk_reference_description() -> Vc<RcStr> {
 #[turbo_tasks::value_impl]
 impl OutputAsset for DevHtmlAsset {
     #[turbo_tasks::function]
-    fn path(&self) -> FileSystemPath {
-        *self.path
+    fn path(&self) -> Vc<FileSystemPath> {
+        self.path.clone().cell()
     }
 
     #[turbo_tasks::function]
@@ -119,7 +119,7 @@ impl DevHtmlAsset {
     #[turbo_tasks::function]
     async fn html_content(self: Vc<Self>) -> Result<Vc<DevHtmlAssetContent>> {
         let this = self.await?;
-        let context_path = this.path.parent().await?;
+        let context_path = this.path.parent();
         let mut chunk_paths = vec![];
         for chunk in &*self.chunks().await? {
             let chunk_path = &*chunk.path().await?;
