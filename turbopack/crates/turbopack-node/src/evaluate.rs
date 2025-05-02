@@ -250,7 +250,7 @@ pub async fn get_evaluate_pool(
         bootstrap,
         output_root,
         entrypoint,
-    } = *emit_evaluate_pool_assets_with_effects_operation(
+    } = &*emit_evaluate_pool_assets_with_effects_operation(
         module_asset,
         asset_context,
         chunking_context,
@@ -259,16 +259,19 @@ pub async fn get_evaluate_pool(
     .read_strongly_consistent()
     .await?;
 
-    let (Some(cwd), Some(entrypoint)) = (to_sys_path(*cwd).await?, to_sys_path(*entrypoint).await?)
-    else {
+    let (Some(cwd), Some(entrypoint)) = (
+        to_sys_path(cwd.clone()).await?,
+        to_sys_path(entrypoint.clone()).await?,
+    ) else {
         panic!("can only evaluate from a disk filesystem");
     };
 
     // Invalidate pool when code content changes
-    content_changed(Vc::upcast(*bootstrap)).await?;
-    let assets_for_source_mapping = internal_assets_for_source_mapping(*bootstrap, *output_root)
-        .to_resolved()
-        .await?;
+    content_changed(Vc::upcast(**bootstrap)).await?;
+    let assets_for_source_mapping =
+        internal_assets_for_source_mapping(**bootstrap, output_root.clone())
+            .to_resolved()
+            .await?;
     let env = match env_var_tracking {
         EnvVarTracking::WholeEnvTracked => env.read_all().await?,
         EnvVarTracking::Untracked => {
@@ -286,7 +289,7 @@ pub async fn get_evaluate_pool(
         entrypoint,
         env.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
         assets_for_source_mapping,
-        output_root,
+        output_root.clone(),
         (*chunking_context.root_path().await?).clone(),
         available_parallelism().map_or(1, |v| v.get()),
         debug,
@@ -619,7 +622,7 @@ impl EvaluateContext for BasicEvaluateContext {
     fn pool(&self) -> OperationVc<crate::pool::NodeJsPool> {
         get_evaluate_pool(
             self.module_asset,
-            self.cwd,
+            self.cwd.clone(),
             self.env,
             self.asset_context,
             self.chunking_context,
@@ -635,7 +638,7 @@ impl EvaluateContext for BasicEvaluateContext {
     }
 
     fn cwd(&self) -> Vc<turbo_tasks_fs::FileSystemPath> {
-        *self.cwd
+        self.cwd.clone().cell()
     }
 
     fn keep_alive(&self) -> bool {
@@ -694,7 +697,7 @@ async fn print_error(
     error
         .print(
             *pool.assets_for_source_mapping,
-            *pool.assets_root,
+            pool.assets_root.clone(),
             evaluate_context.cwd(),
             FormattingMode::Plain,
         )
