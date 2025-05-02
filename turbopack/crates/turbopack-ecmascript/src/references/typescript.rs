@@ -45,7 +45,7 @@ impl ValueToString for TsConfigReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
         Ok(Vc::cell(
-            format!("tsconfig {}", self.tsconfig.to_string().await?,).into(),
+            format!("tsconfig {}", self.tsconfig.to_string()).into(),
         ))
     }
 }
@@ -70,12 +70,12 @@ impl ModuleReference for TsReferencePathAssetReference {
     #[turbo_tasks::function]
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
         Ok(
-            if let Some(path) = &*self
+            if let Some(path) = &self
                 .origin
                 .origin_path()
-                .parent()
-                .try_join(self.path.clone())
                 .await?
+                .parent()
+                .try_join(self.path.clone())?
             {
                 let module = self
                     .origin
