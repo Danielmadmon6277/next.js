@@ -29,8 +29,8 @@ impl FixedStaticAsset {
 #[turbo_tasks::value_impl]
 impl OutputAsset for FixedStaticAsset {
     #[turbo_tasks::function]
-    fn path(&self) -> FileSystemPath {
-        *self.output_path
+    fn path(&self) -> Vc<FileSystemPath> {
+        self.output_path.clone().cell()
     }
 }
 
