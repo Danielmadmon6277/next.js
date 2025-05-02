@@ -182,7 +182,7 @@ impl RequireContextMap {
         issue_source: Option<IssueSource>,
         is_optional: bool,
     ) -> Result<Vc<Self>> {
-        let origin_path = &*origin.origin_path().await?.parent();
+        let origin_path = origin.origin_path().await?.parent();
 
         let list = &*FlatDirList::read(dir, recursive, filter).await?;
 
@@ -239,7 +239,7 @@ impl RequireContextAssetReference {
     ) -> Result<Self> {
         let map = RequireContextMap::generate(
             *origin,
-            origin.origin_path().parent().join(dir.clone()),
+            origin.origin_path().await?.parent().join(dir.clone())?,
             include_subdirs,
             filter,
             issue_source.clone(),
