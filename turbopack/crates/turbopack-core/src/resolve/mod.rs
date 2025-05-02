@@ -1507,7 +1507,13 @@ pub async fn resolve_raw(
         .and_then(|pat| pat.filter_could_not_match("/ROOT/fsd8nz8og54z"))
     {
         let path = Pattern::new(pat);
-        let matches = read_matches(lookup_dir.root(), "/ROOT/".into(), true, path).await?;
+        let matches = read_matches(
+            (*lookup_dir.root().await?).clone(),
+            "/ROOT/".into(),
+            true,
+            path,
+        )
+        .await?;
         if matches.len() > 10000 {
             let path_str = path.to_string().await?;
             println!(
@@ -1519,7 +1525,7 @@ pub async fn resolve_raw(
         } else {
             for m in matches.iter() {
                 if let PatternMatch::File(request, path) = m {
-                    results.push(to_result(request, *path).await?);
+                    results.push(to_result(request, path.clone()).await?);
                 }
             }
         }
@@ -1537,7 +1543,7 @@ pub async fn resolve_raw(
         }
         for m in matches.iter() {
             if let PatternMatch::File(request, path) = m {
-                results.push(to_result(request, *path).await?);
+                results.push(to_result(request, path.clone()).await?);
             }
         }
     }
@@ -1563,7 +1569,7 @@ pub async fn resolve_inline(
 ) -> Result<Vc<ResolveResult>> {
     let span = {
         let lookup_path = lookup_path.to_string();
-        let request = request.to_string();
+        let request = request.to_string().await?.to_string();
         tracing::info_span!(
             "resolving",
             lookup_path = lookup_path,
@@ -1573,22 +1579,31 @@ pub async fn resolve_inline(
     };
     async {
         let reference_type = Value::new(reference_type);
-        let before_plugins_result =
-            handle_before_resolve_plugins(lookup_path, reference_type.clone(), request, options)
-                .await?;
+        let before_plugins_result = handle_before_resolve_plugins(
+            lookup_path.clone(),
+            reference_type.clone(),
+            request,
+            options,
+        )
+        .await?;
 
         let raw_result = match before_plugins_result {
             Some(result) => result,
             None => {
-                resolve_internal(lookup_path, request, options)
+                resolve_internal(lookup_path.clone(), request, options)
                     .resolve()
                     .await?
             }
         };
 
-        let result =
-            handle_after_resolve_plugins(lookup_path, reference_type, request, options, raw_result)
-                .await?;
+        let result = handle_after_resolve_plugins(
+            lookup_path.clone(),
+            reference_type.clone(),
+            request,
+            options,
+            raw_result,
+        )
+        .await?;
         Ok(result)
     }
     .instrument(span)
@@ -1606,7 +1621,7 @@ pub async fn url_resolve(
     let resolve_options = origin.resolve_options(reference_type.clone());
     let rel_request = request.as_relative();
     let rel_result = resolve(
-        origin.origin_path().parent(),
+        origin.origin_path().await?.parent(),
         reference_type.clone(),
         rel_request,
         resolve_options,
@@ -1614,7 +1629,7 @@ pub async fn url_resolve(
     let result = if *rel_result.is_unresolvable().await? && rel_request.resolve().await? != request
     {
         resolve(
-            origin.origin_path().parent(),
+            origin.origin_path().await?.parent(),
             reference_type.clone(),
             request,
             resolve_options,
@@ -1635,7 +1650,7 @@ pub async fn url_resolve(
     handle_resolve_error(
         result,
         reference_type,
-        origin.origin_path(),
+        (*origin.origin_path().await?).clone(),
         request,
         resolve_options,
         is_optional,
