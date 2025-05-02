@@ -34,7 +34,7 @@ impl ModuleReference for PackageJsonReference {
     #[turbo_tasks::function]
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
         Ok(*ModuleResolveResult::module(ResolvedVc::upcast(
-            RawModule::new(Vc::upcast(FileSource::new(*self.package_json)))
+            RawModule::new(Vc::upcast(FileSource::new(self.package_json.clone())))
                 .to_resolved()
                 .await?,
         )))
@@ -46,7 +46,7 @@ impl ValueToString for PackageJsonReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
         Ok(Vc::cell(
-            format!("package.json {}", self.package_json.to_string().await?,).into(),
+            format!("package.json {}", self.package_json.to_string()).into(),
         ))
     }
 }
