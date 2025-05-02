@@ -722,7 +722,7 @@ fn save_strings_serial<'a>(
     strings: &RcStrToLocalId,
 ) -> Result<LocalIdToGlobalId> {
     let mut global_ids = Vec::new();
-    for s in strings.0.iter() {
+    for s in strings.iter() {
         let (global_id, is_new) = get_string_id(batch, s)?;
         if is_new {
             batch.put(
@@ -748,7 +748,7 @@ fn save_strings_concurrent<'a>(
     strings: &RcStrToLocalId,
 ) -> Result<LocalIdToGlobalId> {
     let mut global_ids = Vec::new();
-    for s in strings.0.iter() {
+    for s in strings.iter() {
         let (global_id, is_new) = get_string_id(batch, s)?;
         if is_new {
             batch.put(
