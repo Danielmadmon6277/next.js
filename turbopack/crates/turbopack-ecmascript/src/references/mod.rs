@@ -855,7 +855,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
         let exports = if !esm_exports.is_empty() || !esm_star_exports.is_empty() {
             if specified_type == SpecifiedModuleType::CommonJs {
                 SpecifiedModuleTypeIssue {
-                    path: source.ident().path().to_resolved().await?,
+                    path: (*source.ident().path().await?).clone(),
                     specified_type,
                 }
                 .resolved_cell()
@@ -873,7 +873,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
             match detect_dynamic_export(program) {
                 DetectedDynamicExportType::CommonJs => {
                     SpecifiedModuleTypeIssue {
-                        path: source.ident().path().to_resolved().await?,
+                        path: (*source.ident().path().await?).clone(),
                         specified_type,
                     }
                     .resolved_cell()
@@ -2794,7 +2794,7 @@ pub async fn as_abs_path(path: FileSystemPath) -> Result<JsValue> {
 
 /// Generates an absolute path usable for `require.resolve()` calls.
 async fn require_resolve(path: FileSystemPath) -> Result<JsValue> {
-    Ok(format!("/ROOT/{}", path.await?.path.as_str()).into())
+    Ok(format!("/ROOT/{}", path.path.as_str()).into())
 }
 
 async fn early_value_visitor(mut v: JsValue) -> Result<(JsValue, bool)> {
