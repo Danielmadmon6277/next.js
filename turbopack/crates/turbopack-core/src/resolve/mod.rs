@@ -3005,7 +3005,7 @@ async fn resolve_package_internal_with_imports_field(
 
     let imports_result = imports_field(file_path).await?;
     let (imports, package_json_path) = match &*imports_result {
-        ImportsFieldResult::Some(i, p) => (i, *p),
+        ImportsFieldResult::Some(i, p) => (i, p.clone()),
         ImportsFieldResult::None => return Ok(*ResolveResult::unresolvable()),
     };
 
