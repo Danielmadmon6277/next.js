@@ -358,7 +358,7 @@ async fn to_single_pattern_mapping(
                     .into(),
                 )
                 .resolved_cell(),
-                path: origin.origin_path().to_resolved().await?,
+                path: (*origin.origin_path().await?).clone(),
             }
             .resolved_cell()
             .emit();
