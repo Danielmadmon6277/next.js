@@ -1699,9 +1699,14 @@ async fn handle_after_resolve_plugins(
     ) -> Result<Option<Vc<ResolveResult>>> {
         for plugin in &options.await?.plugins {
             let after_resolve_condition = plugin.after_resolve_condition().resolve().await?;
-            if *after_resolve_condition.matches(path).await? {
+            if *after_resolve_condition.matches(path.clone()).await? {
                 if let Some(result) = *plugin
-                    .after_resolve(path, lookup_path, reference_type.clone(), request)
+                    .after_resolve(
+                        path.clone(),
+                        lookup_path.clone(),
+                        reference_type.clone(),
+                        request,
+                    )
                     .await?
                 {
                     return Ok(Some(*result));
@@ -1720,9 +1725,14 @@ async fn handle_after_resolve_plugins(
     for (key, primary) in result_value.primary.iter() {
         if let &ResolveResultItem::Source(source) = primary {
             let path = source.ident().path().resolve().await?;
-            if let Some(new_result) =
-                apply_plugins_to_path(path, lookup_path, reference_type.clone(), request, options)
-                    .await?
+            if let Some(new_result) = apply_plugins_to_path(
+                path.clone(),
+                lookup_path.clone(),
+                reference_type.clone(),
+                request.clone(),
+                options.clone(),
+            )
+            .await?
             {
                 let new_result = new_result.await?;
                 changed = true;
