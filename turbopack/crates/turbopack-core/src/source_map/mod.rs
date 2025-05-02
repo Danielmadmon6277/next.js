@@ -7,7 +7,7 @@ use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sourcemap::{DecodedMap, SourceMap as RegularMap, SourceMapBuilder, SourceMapIndex};
 use turbo_rcstr::RcStr;
-use turbo_tasks::{ResolvedVc, TryJoinIterExt, ValueToString, Vc};
+use turbo_tasks::{ResolvedVc, TryJoinIterExt, Vc};
 use turbo_tasks_fs::{
     rope::{Rope, RopeBuilder},
     File, FileContent, FileSystem, FileSystemPath, VirtualFileSystem,
@@ -459,7 +459,7 @@ impl SourceMap {
             let mut new_sources = Vec::with_capacity(count);
             let mut new_source_contents = Vec::with_capacity(count);
             for (source, source_content) in sources.into_iter().zip(source_contents.into_iter()) {
-                let (source, name) = resolve_source(source, source_content, origin).await?;
+                let (source, name) = resolve_source(source, source_content, origin.clone()).await?;
                 new_sources.push(source);
                 new_source_contents.push(Some(name));
             }
