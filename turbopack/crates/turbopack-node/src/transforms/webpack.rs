@@ -189,9 +189,10 @@ async fn webpack_loaders_executor(
     evaluate_context: Vc<Box<dyn AssetContext>>,
 ) -> Result<Vc<ProcessResult>> {
     Ok(evaluate_context.process(
-        Vc::upcast(FileSource::new(embed_file_path(
-            "transforms/webpack-loaders.ts".into(),
-        ))),
+        Vc::upcast(
+            FileSource::new((*embed_file_path("transforms/webpack-loaders.ts".into())).await?)
+                .clone(),
+        ),
         Value::new(ReferenceType::Internal(
             InnerAssets::empty().to_resolved().await?,
         )),
