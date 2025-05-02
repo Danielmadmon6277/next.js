@@ -33,9 +33,12 @@ impl ModuleReference for TsConfigReference {
     #[turbo_tasks::function]
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
         Ok(*ModuleResolveResult::module(ResolvedVc::upcast(
-            TsConfigModuleAsset::new(*self.origin, Vc::upcast(FileSource::new(*self.tsconfig)))
-                .to_resolved()
-                .await?,
+            TsConfigModuleAsset::new(
+                *self.origin,
+                Vc::upcast(FileSource::new(self.tsconfig.clone())),
+            )
+            .to_resolved()
+            .await?,
         )))
     }
 }
@@ -81,7 +84,7 @@ impl ModuleReference for TsReferencePathAssetReference {
                     .origin
                     .asset_context()
                     .process(
-                        Vc::upcast(FileSource::new(**path)),
+                        Vc::upcast(FileSource::new(path.clone())),
                         Value::new(ReferenceType::TypeScript(
                             TypeScriptReferenceSubType::Undefined,
                         )),
