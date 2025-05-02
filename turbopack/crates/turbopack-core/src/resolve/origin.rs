@@ -93,7 +93,7 @@ async fn resolve_asset(
         .resolve()
         .await?
         .resolve_asset(
-            resolve_origin.origin_path().resolve().await?,
+            resolve_origin.origin_path(),
             request.resolve().await?,
             options.resolve().await?,
             reference_type,
