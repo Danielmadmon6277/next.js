@@ -44,7 +44,10 @@ pub trait ResolveOriginExt: Send {
     ) -> impl Future<Output = Result<Vc<ModuleResolveResult>>> + Send;
 
     /// Get the resolve options that apply for this origin.
-    fn resolve_options(self: Vc<Self>, reference_type: Value<ReferenceType>) -> Vc<ResolveOptions>;
+    async fn resolve_options(
+        self: Vc<Self>,
+        reference_type: Value<ReferenceType>,
+    ) -> Result<Vc<ResolveOptions>>;
 
     /// Adds a transition that is used for resolved assets.
     fn with_transition(self: ResolvedVc<Self>, transition: RcStr) -> Vc<Box<dyn ResolveOrigin>>;
@@ -63,7 +66,10 @@ where
         resolve_asset(Vc::upcast(self), request, options, reference_type)
     }
 
-    fn resolve_options(self: Vc<Self>, reference_type: Value<ReferenceType>) -> Vc<ResolveOptions> {
+    async fn resolve_options(
+        self: Vc<Self>,
+        reference_type: Value<ReferenceType>,
+    ) -> Result<Vc<ResolveOptions>> {
         self.asset_context()
             .resolve_options(self.origin_path().await?, reference_type)
     }
