@@ -200,10 +200,13 @@ impl AliasTemplate for Vc<ImportMapping> {
                     name: name.clone(),
                     ty: *ty,
                     traced: *traced,
-                    lookup_dir: *lookup_dir,
+                    lookup_dir: lookup_dir.clone(),
                 },
                 ImportMapping::PrimaryAlternative(name, lookup_dir) => {
-                    ReplacedImportMapping::PrimaryAlternative((*name).clone().into(), *lookup_dir)
+                    ReplacedImportMapping::PrimaryAlternative(
+                        (*name).clone().into(),
+                        lookup_dir.clone(),
+                    )
                 }
                 ImportMapping::Direct(v) => ReplacedImportMapping::Direct(*v),
                 ImportMapping::Ignore => ReplacedImportMapping::Ignore,
@@ -353,7 +356,8 @@ impl ImportMap {
         let wildcard_alias: RcStr = (prefix.to_string() + "/*").into();
         self.insert_exact_alias(
             prefix.clone(),
-            ImportMapping::PrimaryAlternative(prefix.clone(), Some(context_path)).resolved_cell(),
+            ImportMapping::PrimaryAlternative(prefix.clone(), Some(context_path.clone()))
+                .resolved_cell(),
         );
         self.insert_wildcard_alias(
             wildcard_prefix,
