@@ -236,7 +236,7 @@ impl EcmascriptAnalyzable for EcmascriptModuleFacadeModule {
 
     #[turbo_tasks::function]
     async fn module_content_options(
-        self: Vc<Self>,
+        self: ResolvedVc<Self>,
         module_graph: ResolvedVc<ModuleGraph>,
         chunking_context: ResolvedVc<Box<dyn ChunkingContext>>,
         async_module_info: Option<ResolvedVc<AsyncModuleInfo>>,
@@ -258,6 +258,8 @@ impl EcmascriptAnalyzable for EcmascriptModuleFacadeModule {
             original_source_map: OptionStringifiedSourceMap::none().to_resolved().await?,
             exports: self.get_exports().to_resolved().await?,
             async_module_info,
+            module: ResolvedVc::upcast(self),
+            remove_unused_exports: self.options().await?.remove_unused_exports,
         }
         .cell())
     }
