@@ -124,9 +124,9 @@ async fn resolve_reference_from_dir(
         match pat_match {
             PatternMatch::File(matched_path, file) => {
                 let realpath = file.realpath_with_links().await?;
-                for &symlink in &realpath.symlinks {
+                for symlink in realpath.symlinks.iter() {
                     affecting_sources.push(ResolvedVc::upcast(
-                        FileSource::new((symlink).clone()).to_resolved().await?,
+                        FileSource::new(symlink.clone()).to_resolved().await?,
                     ));
                 }
                 results.push((
