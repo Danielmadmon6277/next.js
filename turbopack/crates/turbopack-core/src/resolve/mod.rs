@@ -1928,7 +1928,7 @@ async fn resolve_internal_inline(
                 fragment,
             } => {
                 resolve_module_request(
-                    lookup_path,
+                    lookup_path.clone(),
                     request,
                     options,
                     options_value,
@@ -2009,7 +2009,7 @@ async fn resolve_internal_inline(
                     })
                     .unwrap_or_else(|| (Default::default(), ConditionValue::Unset));
                 resolve_package_internal_with_imports_field(
-                    lookup_path,
+                    lookup_path.clone(),
                     request,
                     options,
                     path,
@@ -2035,7 +2035,7 @@ async fn resolve_internal_inline(
                                 media_type.clone(),
                                 encoding.clone(),
                                 **data,
-                                lookup_path,
+                                lookup_path.clone(),
                             )
                             .to_resolved()
                             .await?,
@@ -2146,9 +2146,10 @@ async fn resolve_into_folder(
                         } else {
                             options
                         };
-                        let result = &*resolve_internal_inline(*package_path, *request, options)
-                            .await?
-                            .await?;
+                        let result =
+                            &*resolve_internal_inline(package_path.clone(), *request, options)
+                                .await?
+                                .await?;
                         // we are not that strict when a main field fails to resolve
                         // we continue to try other alternatives
                         if !result.is_unresolvable_ref() {
@@ -2184,9 +2185,11 @@ async fn resolve_into_folder(
 
     let request = Request::parse(Value::new(pattern));
 
-    Ok(resolve_internal_inline(*package_path, request, options)
-        .await?
-        .with_request(".".into()))
+    Ok(
+        resolve_internal_inline(package_path.clone(), request, options)
+            .await?
+            .with_request(".".into()),
+    )
 }
 
 #[tracing::instrument(level = Level::TRACE, skip_all)]
@@ -2201,9 +2204,9 @@ async fn resolve_relative_request(
     fragment: Vc<RcStr>,
 ) -> Result<Vc<ResolveResult>> {
     // Check alias field for aliases first
-    let lookup_path_ref = &*lookup_path;
+    let lookup_path_ref = &lookup_path;
     if let Some(result) = apply_in_package(
-        lookup_path,
+        lookup_path.clone(),
         options,
         options_value,
         |package_path| {
@@ -2316,7 +2319,7 @@ async fn resolve_relative_request(
                             results.push(
                                 resolved(
                                     RequestKey::new(matched_pattern.into()),
-                                    path,
+                                    path.clone(),
                                     lookup_path,
                                     request,
                                     options_value,
@@ -2333,7 +2336,7 @@ async fn resolve_relative_request(
                         results.push(
                             resolved(
                                 RequestKey::new(matched_pattern.into()),
-                                path,
+                                path.clone(),
                                 lookup_path,
                                 request,
                                 options_value,
@@ -2356,7 +2359,7 @@ async fn resolve_relative_request(
                     results.push(
                         resolved(
                             RequestKey::new(matched_pattern.into()),
-                            path,
+                            path.clone(),
                             lookup_path,
                             request,
                             options_value,
@@ -2374,7 +2377,7 @@ async fn resolve_relative_request(
                 results.push(
                     resolved(
                         RequestKey::new(matched_pattern.clone()),
-                        **path,
+                        path.clone(),
                         lookup_path,
                         request,
                         options_value,
@@ -2390,8 +2393,9 @@ async fn resolve_relative_request(
     // Directory matches must be resolved AFTER file matches
     for m in matches.iter() {
         if let PatternMatch::Directory(matched_pattern, path) = m {
-            results
-                .push(resolve_into_folder(**path, options).with_request(matched_pattern.clone()));
+            results.push(
+                resolve_into_folder(path.clone(), options).with_request(matched_pattern.clone()),
+            );
         }
     }
 
