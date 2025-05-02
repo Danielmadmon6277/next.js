@@ -1385,7 +1385,7 @@ async fn find_package(
         match resolve_modules {
             ResolveModules::Nested(root_vc, names) => {
                 let mut lookup_path = lookup_path;
-                let mut lookup_path_value = lookup_path.await?;
+                let mut lookup_path_value = lookup_path;
                 // For clippy -- This explicit deref is necessary
                 let root = root_vc;
                 while lookup_path_value.is_inside_ref(root) {
@@ -1400,8 +1400,8 @@ async fn find_package(
                             }
                         }
                     }
-                    lookup_path = lookup_path.parent().resolve().await?;
-                    let new_context_value = lookup_path.await?;
+                    lookup_path = lookup_path.parent();
+                    let new_context_value = lookup_path;
                     if *new_context_value == *lookup_path_value {
                         break;
                     }
@@ -1504,7 +1504,7 @@ pub async fn resolve_raw(
 
     let mut results = Vec::new();
 
-    let lookup_dir_str = lookup_dir.to_string().await?;
+    let lookup_dir_str = lookup_dir.to_string();
     let pat = path.await?;
     if let Some(pat) = pat
         .filter_could_match("/ROOT/")
