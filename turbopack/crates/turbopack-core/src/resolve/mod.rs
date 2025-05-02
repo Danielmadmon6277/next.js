@@ -2421,12 +2421,12 @@ async fn apply_in_package(
         };
 
         let FindContextFileResult::Found(package_json_path, refs) =
-            &*find_context_file(lookup_path, package_json().resolve().await?).await?
+            &*find_context_file(lookup_path.clone(), package_json().resolve().await?).await?
         else {
             continue;
         };
 
-        let read = read_package_json(**package_json_path).await?;
+        let read = read_package_json(package_json_path.clone()).await?;
         let Some(package_json) = &*read else {
             continue;
         };
@@ -2483,7 +2483,7 @@ async fn apply_in_package(
 
         ResolvingIssue {
             severity: error_severity(options).await?,
-            file_path: *package_json_path,
+            file_path: package_json_path.clone(),
             request_type: format!("alias field ({field})"),
             request: Request::parse(Value::new(Pattern::Constant(request)))
                 .to_resolved()
@@ -2572,7 +2572,7 @@ async fn resolve_module_request(
         if name == module {
             let result = resolve_into_package(
                 Value::new(path.clone()),
-                package_path,
+                package_path.clone(),
                 query,
                 fragment,
                 options,
@@ -2608,7 +2608,7 @@ async fn resolve_module_request(
             FindPackageItem::PackageDirectory(package_path) => {
                 results.push(resolve_into_package(
                     Value::new(path.clone()),
-                    *package_path,
+                    package_path.clone(),
                     query,
                     fragment,
                     options,
@@ -2618,8 +2618,8 @@ async fn resolve_module_request(
                 if path.is_match("") {
                     let resolved = resolved(
                         RequestKey::new(".".into()),
-                        *package_path,
-                        lookup_path,
+                        package_path.clone(),
+                        lookup_path.clone(),
                         request,
                         options_value,
                         options,
@@ -2681,7 +2681,7 @@ async fn resolve_into_package(
                 conditions,
                 unspecified_conditions,
             } => {
-                let package_json_path = package_path.join("package.json".into());
+                let package_json_path = package_path.join("package.json".into())?;
                 let ExportsFieldResult::Some(exports_field) =
                     &*exports_field(package_json_path).await?
                 else {
@@ -2700,9 +2700,9 @@ async fn resolve_into_package(
 
                 results.push(
                     handle_exports_imports_field(
-                        *package_path,
+                        package_path.clone(),
                         package_json_path,
-                        *options,
+                        options,
                         exports_field,
                         &path,
                         conditions,
