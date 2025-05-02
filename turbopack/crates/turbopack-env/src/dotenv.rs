@@ -35,7 +35,7 @@ pub async fn load_env(project_path: FileSystemPath) -> Result<Vc<Box<dyn Process
     .flatten();
 
     let env = files.fold(env, |prior, f| {
-        let path = project_path.join(f.into());
+        let path = project_path.join(f.into())?;
         Vc::upcast(TryDotenvProcessEnv::new(prior, path))
     });
 
