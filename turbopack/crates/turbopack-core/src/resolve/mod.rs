@@ -1384,8 +1384,8 @@ async fn find_package(
     for resolve_modules in &options.modules {
         match resolve_modules {
             ResolveModules::Nested(root_vc, names) => {
-                let mut lookup_path = lookup_path;
-                let mut lookup_path_value = lookup_path;
+                let mut lookup_path = lookup_path.clone();
+                let mut lookup_path_value = lookup_path.clone();
                 // For clippy -- This explicit deref is necessary
                 let root = root_vc;
                 while lookup_path_value.is_inside_ref(root) {
@@ -1401,8 +1401,8 @@ async fn find_package(
                         }
                     }
                     lookup_path = lookup_path.parent();
-                    let new_context_value = lookup_path;
-                    if *new_context_value == *lookup_path_value {
+                    let new_context_value = lookup_path.clone();
+                    if new_context_value == lookup_path_value {
                         break;
                     }
                     lookup_path_value = new_context_value;
@@ -1413,20 +1413,16 @@ async fn find_package(
                 excluded_extensions,
             } => {
                 let excluded_extensions = excluded_extensions.await?;
-                let package_dir = dir.join(package_name.clone());
+                let package_dir = dir.join(package_name.clone())?;
                 if let Some((ty, package_dir)) =
-                    any_exists(package_dir, &mut affecting_sources).await?
+                    any_exists(package_dir.clone(), &mut affecting_sources).await?
                 {
                     match ty {
                         FileSystemEntryType::Directory => {
-                            packages.push(FindPackageItem::PackageDirectory(
-                                package_dir.to_resolved().await?,
-                            ));
+                            packages.push(FindPackageItem::PackageDirectory(package_dir));
                         }
                         FileSystemEntryType::File => {
-                            packages.push(FindPackageItem::PackageFile(
-                                package_dir.to_resolved().await?,
-                            ));
+                            packages.push(FindPackageItem::PackageFile(package_dir));
                         }
                         _ => {}
                     }
@@ -1435,7 +1431,7 @@ async fn find_package(
                     if excluded_extensions.contains(extension) {
                         continue;
                     }
-                    let package_file = package_dir.append(extension.clone());
+                    let package_file = package_dir.append(extension.clone())?;
                     if let Some(package_file) = exists(package_file, &mut affecting_sources).await?
                     {
                         packages.push(FindPackageItem::PackageFile(package_file));
@@ -1489,12 +1485,12 @@ pub async fn resolve_raw(
         let RealPathResult { path, symlinks } = &*path.realpath_with_links().await?;
         Ok(*ResolveResult::source_with_affecting_sources(
             RequestKey::new(request.into()),
-            ResolvedVc::upcast(FileSource::new(**path).to_resolved().await?),
+            ResolvedVc::upcast(FileSource::new(path.clone()).to_resolved().await?),
             symlinks
                 .iter()
                 .map(|symlink| async move {
                     anyhow::Ok(ResolvedVc::upcast(
-                        FileSource::new(**symlink).to_resolved().await?,
+                        FileSource::new(symlink.clone()).to_resolved().await?,
                     ))
                 })
                 .try_join()
