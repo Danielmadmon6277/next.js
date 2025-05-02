@@ -344,8 +344,8 @@ async fn render_stream_internal(
                 let trace = trace_stack(
                     error,
                     *intermediate_asset,
-                    *intermediate_output_path,
-                    *project_dir,
+                    intermediate_output_path.clone(),
+                    project_dir.clone(),
                 )
                 .await?;
                 yield RenderItem::Response(
