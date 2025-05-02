@@ -504,7 +504,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     .try_join();
                 let file_subscriptions = file_paths
                     .iter()
-                    .map(|p| self.cwd.join(p.clone())?.read())
+                    .map(|p| async move { Ok(self.cwd.join(p.clone())?.read().await?) })
                     .try_join();
                 let directory_subscriptions = directories
                     .iter()
@@ -513,11 +513,14 @@ impl EvaluateContext for WebpackLoaderContext {
                         // `read_glob` does, Introduce a new read_glob
                         // option that will track all files the way
                         // `dir_dependency` does but in a single traversal.
-                        dir_dependency(
-                            self.cwd
-                                .join(dir.clone())?
-                                .read_glob(Glob::new(glob.clone()), false),
-                        )
+                        async move {
+                            Ok(dir_dependency(
+                                self.cwd
+                                    .join(dir.clone())?
+                                    .read_glob(Glob::new(glob.clone()), false),
+                            )
+                            .await?)
+                        }
                     })
                     .try_join();
                 let build_paths = build_file_paths
@@ -546,7 +549,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     error,
                     severity: severity.resolved_cell(),
                     assets_for_source_mapping: pool.assets_for_source_mapping,
-                    assets_root: pool.assets_root,
+                    assets_root: pool.assets_root.clone(),
                     project_dir: (*self.chunking_context.root_path().await?).clone(),
                 }
                 .resolved_cell()
