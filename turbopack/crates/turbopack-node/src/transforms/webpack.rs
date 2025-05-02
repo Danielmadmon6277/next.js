@@ -638,7 +638,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     IssueSeverity::Warning.resolved_cell()
                 },
                 assets_for_source_mapping: pool.assets_for_source_mapping,
-                assets_root: pool.assets_root,
+                assets_root: pool.assets_root.clone(),
                 project_dir: (*self.chunking_context.root_path().await?).clone(),
             }
             .resolved_cell()
