@@ -547,7 +547,7 @@ fn sourcemap_content_fs_root() -> Vc<FileSystemPath> {
 async fn sourcemap_content_source(path: RcStr, content: RcStr) -> Result<Vc<Box<dyn Source>>> {
     let path = sourcemap_content_fs_root().await?.join(path)?;
     let content = AssetContent::file(FileContent::new(File::from(content)).cell());
-    Ok(Vc::upcast(VirtualSource::new(path, content)))
+    Ok(Vc::upcast(VirtualSource::new(path.cell(), content)))
 }
 
 impl SourceMap {
