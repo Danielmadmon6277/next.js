@@ -122,7 +122,7 @@ impl GetContentSource for NodeRenderContentSource {
                     *entry.module,
                     *entry.runtime_entries,
                     *entry.chunking_context,
-                    *entry.intermediate_output_path,
+                    entry.intermediate_output_path.clone(),
                 )
                 .await?
                 .iter()
@@ -130,7 +130,7 @@ impl GetContentSource for NodeRenderContentSource {
             )
         }
         Ok(Vc::upcast(AssetGraphContentSource::new_lazy_multiple(
-            *self.server_root,
+            self.server_root.clone(),
             Vc::cell(set),
         )))
     }
