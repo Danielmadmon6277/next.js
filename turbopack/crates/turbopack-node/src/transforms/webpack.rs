@@ -256,10 +256,10 @@ impl WebpackLoadersProcessedAsset {
         let config_value = evaluate_webpack_loader(WebpackLoaderContext {
             module_asset: webpack_loaders_executor,
             cwd: project_path.clone(),
-            env,
+            env: *env,
             context_ident_for_issue: this.source.ident().to_resolved().await?,
             asset_context: evaluate_context,
-            chunking_context,
+            chunking_context: *chunking_context,
             resolve_options_context: Some(transform.resolve_options_context),
             args: vec![
                 ResolvedVc::cell(content),
@@ -457,8 +457,8 @@ impl EvaluateContext for WebpackLoaderContext {
         &self.args
     }
 
-    fn cwd(&self) -> Vc<turbo_tasks_fs::FileSystemPath> {
-        *self.cwd
+    fn cwd(&self) -> FileSystemPath {
+        self.cwd.clone()
     }
 
     fn keep_alive(&self) -> bool {
@@ -471,7 +471,7 @@ impl EvaluateContext for WebpackLoaderContext {
             context_ident: self.context_ident_for_issue,
             assets_for_source_mapping: pool.assets_for_source_mapping,
             assets_root: pool.assets_root,
-            root_path: self.chunking_context.root_path().to_resolved().await?,
+            root_path: self.chunking_context.root_path().await?,
         }
         .resolved_cell()
         .emit();
@@ -504,7 +504,7 @@ impl EvaluateContext for WebpackLoaderContext {
                     .try_join();
                 let file_subscriptions = file_paths
                     .iter()
-                    .map(|p| self.cwd.join(p.clone()).read())
+                    .map(|p| Ok(self.cwd.join(p.clone())?.read()))
                     .try_join();
                 let directory_subscriptions = directories
                     .iter()
@@ -513,11 +513,13 @@ impl EvaluateContext for WebpackLoaderContext {
                         // `read_glob` does, Introduce a new read_glob
                         // option that will track all files the way
                         // `dir_dependency` does but in a single traversal.
-                        dir_dependency(
-                            self.cwd
-                                .join(dir.clone())?
-                                .read_glob(Glob::new(glob.clone()), false),
-                        )
+                        async move {
+                            anyhow::Ok(dir_dependency(
+                                self.cwd
+                                    .join(dir.clone())?
+                                    .read_glob(Glob::new(glob.clone()), false),
+                            ))
+                        }
                     })
                     .try_join();
                 let build_paths = build_file_paths
