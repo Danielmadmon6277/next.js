@@ -1404,6 +1404,18 @@ pub async fn rebase(
     new_base.fs.root().await?.join(new_path)
 }
 
+#[turbo_tasks::value_impl]
+impl FileSystemPath {
+    #[turbo_tasks::function]
+    pub async fn join_vc(self: Vc<Self>, path: RcStr) -> Result<Vc<Self>> {
+        let this = self.await?;
+        let new_path = this.join(path)?;
+
+        Ok(new_path.cell())
+    }
+}
+
+// Not turbo-tasks functions, only delegating
 // Not turbo-tasks functions, only delegating
 impl FileSystemPath {
     pub fn read(&self) -> Vc<FileContent> {
