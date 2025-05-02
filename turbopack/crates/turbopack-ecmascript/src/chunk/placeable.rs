@@ -145,7 +145,7 @@ impl Issue for SideEffectsInPackageJsonIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
+    fn file_path(&self) -> Vc<FileSystemPath> {
         *self.path
     }
 
