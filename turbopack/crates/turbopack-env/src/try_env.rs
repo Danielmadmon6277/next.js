@@ -20,7 +20,7 @@ impl TryDotenvProcessEnv {
         prior: ResolvedVc<Box<dyn ProcessEnv>>,
         path: FileSystemPath,
     ) -> Result<Vc<Self>> {
-        let dotenv = DotenvProcessEnv::new(Some(*prior), *path)
+        let dotenv = DotenvProcessEnv::new(Some(*prior), path.clone())
             .to_resolved()
             .await?;
         Ok(TryDotenvProcessEnv {
