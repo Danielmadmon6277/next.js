@@ -330,7 +330,7 @@ pub async fn trace_stack(
     trace_stack_with_source_mapping_assets(
         error,
         assets_for_source_mapping,
-        output_path,
+        output_path.clone(),
         project_dir,
     )
     .await
