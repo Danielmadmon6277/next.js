@@ -1322,7 +1322,7 @@ pub enum PatternMatch {
 impl PatternMatch {
     pub fn path(&self) -> FileSystemPath {
         match self {
-            PatternMatch::File(_, path) | PatternMatch::Directory(_, path) => path,
+            PatternMatch::File(_, path) | PatternMatch::Directory(_, path) => path.clone(),
         }
     }
 
@@ -1454,7 +1454,7 @@ pub async fn read_matches(
                         } else {
                             lookup_dir.try_join(subpath.into())?
                         };
-                        let Some(fs_path) = *joined else {
+                        let Some(fs_path) = joined else {
                             continue;
                         };
                         nested.push((
