@@ -243,9 +243,9 @@ async fn render_stream_internal(
             cwd,
             env,
             intermediate_asset,
-            intermediate_output_path,
-            output_root,
-            project_dir,
+            intermediate_output_path.clone(),
+            output_root.clone(),
+            project_dir.clone(),
             debug,
         );
 
