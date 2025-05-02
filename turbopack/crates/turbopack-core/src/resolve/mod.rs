@@ -1800,13 +1800,16 @@ async fn resolve_internal_inline(
                 _ => &[request.to_resolved().await?],
             };
             for &request in request_parts {
-                let result = import_map.await?.lookup(lookup_path, *request).await?;
+                let result = import_map
+                    .await?
+                    .lookup(lookup_path.clone(), *request)
+                    .await?;
                 if !matches!(result, ImportMapResult::NoEntry) {
                     has_alias = true;
                     let resolved_result = resolve_import_map_result(
                         &result,
-                        lookup_path,
-                        lookup_path,
+                        lookup_path.clone(),
+                        lookup_path.clone(),
                         *request,
                         options,
                         request.query(),
@@ -1832,7 +1835,9 @@ async fn resolve_internal_inline(
             Request::Alternatives { requests } => {
                 let results = requests
                     .iter()
-                    .map(|req| async { resolve_internal_inline(lookup_path, **req, options).await })
+                    .map(|req| async {
+                        resolve_internal_inline(lookup_path.clone(), **req, options.clone()).await
+                    })
                     .try_join()
                     .await?;
 
@@ -1846,7 +1851,7 @@ async fn resolve_internal_inline(
             } => {
                 let mut results = Vec::new();
                 let matches = read_matches(
-                    lookup_path,
+                    lookup_path.clone(),
                     "".into(),
                     *force_in_lookup_dir,
                     Pattern::new(path.clone()).resolve().await?,
@@ -1860,7 +1865,7 @@ async fn resolve_internal_inline(
                                 resolved(
                                     RequestKey::new(matched_pattern.clone()),
                                     path.clone(),
-                                    lookup_path,
+                                    lookup_path.clone(),
                                     request,
                                     options_value,
                                     options,
@@ -1889,7 +1894,7 @@ async fn resolve_internal_inline(
             } => {
                 if !fragment.await?.is_empty() {
                     if let Ok(result) = resolve_relative_request(
-                        lookup_path,
+                        lookup_path.clone(),
                         request,
                         options,
                         options_value,
@@ -1905,7 +1910,7 @@ async fn resolve_internal_inline(
                 }
                 // Resolve without fragment
                 resolve_relative_request(
-                    lookup_path,
+                    lookup_path.clone(),
                     request,
                     options,
                     options_value,
@@ -1978,7 +1983,7 @@ async fn resolve_internal_inline(
                         severity: error_severity(options).await?,
                         request_type: "windows import: not implemented yet".to_string(),
                         request: request.to_resolved().await?,
-                        file_path: lookup_path.to_resolved().await?,
+                        file_path: lookup_path.clone(),
                         resolve_options: options.to_resolved().await?,
                         error_message: Some("windows imports are not implemented yet".to_string()),
                         source: None,
@@ -2087,8 +2092,8 @@ async fn resolve_internal_inline(
                 let result = import_map.await?.lookup(lookup_path, request).await?;
                 let resolved_result = resolve_import_map_result(
                     &result,
-                    lookup_path,
-                    lookup_path,
+                    lookup_path.clone(),
+                    lookup_path.clone(),
                     request,
                     options,
                     request.query(),
