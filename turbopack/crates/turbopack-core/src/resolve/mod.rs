@@ -2519,13 +2519,13 @@ async fn find_self_reference(
 ) -> Result<Vc<FindSelfReferencePackageResult>> {
     let package_json_context = find_context_file(lookup_path, package_json()).await?;
     if let FindContextFileResult::Found(package_json_path, _refs) = &*package_json_context {
-        let read = read_package_json(**package_json_path).await?;
+        let read = read_package_json(package_json_path.clone()).await?;
         if let Some(json) = &*read {
             if json.get("exports").is_some() {
                 if let Some(name) = json["name"].as_str() {
                     return Ok(FindSelfReferencePackageResult::Found {
                         name: name.to_string(),
-                        package_path: package_json_path.parent().to_resolved().await?,
+                        package_path: package_json_path.parent(),
                     }
                     .cell());
                 }
