@@ -294,11 +294,11 @@ impl Source for JsonSource {
         match &*self.key.await? {
             Some(key) => Ok(AssetIdent::from_path(
                 self.path
-                    .append(".".into())
-                    .append(key.clone())
-                    .append(".json".into()),
+                    .append(".".into())?
+                    .append(key.clone())?
+                    .append(".json".into())?,
             )),
-            None => Ok(AssetIdent::from_path(self.path.append(".json".into()))),
+            None => Ok(AssetIdent::from_path(self.path.append(".json".into())?)),
         }
     }
 }
@@ -339,7 +339,7 @@ pub(crate) async fn config_loader_source(
     project_path: FileSystemPath,
     postcss_config_path: FileSystemPath,
 ) -> Result<Vc<Box<dyn Source>>> {
-    let postcss_config_path_value = &*postcss_config_path.await?;
+    let postcss_config_path_value = postcss_config_path.clone();
     let postcss_config_path_filename = postcss_config_path_value.file_name();
 
     if postcss_config_path_filename == "package.json" {
@@ -437,7 +437,7 @@ async fn find_config_in_location(
     )
     .await?
     {
-        return Ok(Some(*config_path));
+        return Ok(Some(config_path));
     }
 
     if matches!(location, PostCssConfigLocation::ProjectPathOrLocalPath) {
@@ -448,7 +448,7 @@ async fn find_config_in_location(
         )
         .await?
         {
-            return Ok(Some(*config_path));
+            return Ok(Some(config_path));
         }
     }
 
@@ -527,15 +527,13 @@ impl PostCssTransformedAsset {
 
         // We need to get a path relative to the project because the postcss loader
         // runs with the project as the current working directory.
-        let css_path = if let Some(css_path) = project_path
-            .await?
-            .get_relative_path_to(&*css_fs_path.await?)
-        {
-            css_path.into_owned()
-        } else {
-            // This shouldn't be an error since it can happen on virtual assets
-            "".into()
-        };
+        let css_path =
+            if let Some(css_path) = project_path.get_relative_path_to(&*css_fs_path.await?) {
+                css_path.into_owned()
+            } else {
+                // This shouldn't be an error since it can happen on virtual assets
+                "".into()
+            };
 
         let config_value = evaluate_webpack_loader(WebpackLoaderContext {
             module_asset: postcss_executor,
