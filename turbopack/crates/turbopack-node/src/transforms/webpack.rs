@@ -250,8 +250,7 @@ impl WebpackLoadersProcessedAsset {
         else {
             bail!(format!(
                 "Resource path \"{}\" need to be on project filesystem \"{}\"",
-                resource_fs_path_ref,
-                project_path.await?
+                resource_fs_path_ref, project_path
             ));
         };
         let loaders = transform.loaders.await?;
@@ -297,7 +296,8 @@ impl WebpackLoadersProcessedAsset {
                 .map
                 .map(|source_map| Rope::from(source_map.into_owned()))
         };
-        let source_map = resolve_source_map_sources(source_map.as_ref(), resource_fs_path).await?;
+        let source_map =
+            resolve_source_map_sources(source_map.as_ref(), resource_fs_path.clone()).await?;
 
         let file = match processed.source {
             Either::Left(str) => File::from(str),
@@ -765,7 +765,7 @@ impl Issue for BuildDependencyIssue {
         Ok(Vc::cell(Some(
             StyledString::Line(vec![
                 StyledString::Text("The file at ".into()),
-                StyledString::Code(self.path.await?.to_string().into()),
+                StyledString::Code(self.path.to_string().into()),
                 StyledString::Text(
                     " is a build dependency, which is not yet implemented.
     Changing this file or any dependency will not be recognized and might require restarting the \
@@ -798,7 +798,7 @@ async fn dir_dependency_shallow(glob: Vc<ReadGlobResult>) -> Result<Vc<Completio
     let glob = glob.await?;
     for item in glob.results.values() {
         // Reading all files to add itself as dependency
-        match *item {
+        match &*item {
             DirectoryEntry::File(file) => {
                 file.read().await?;
             }
