@@ -1618,7 +1618,7 @@ pub async fn url_resolve(
     issue_source: Option<IssueSource>,
     is_optional: bool,
 ) -> Result<Vc<ModuleResolveResult>> {
-    let resolve_options = origin.resolve_options(reference_type.clone());
+    let resolve_options = origin.resolve_options(reference_type.clone()).await?;
     let rel_request = request.as_relative();
     let rel_result = resolve(
         origin.origin_path().await?.parent(),
