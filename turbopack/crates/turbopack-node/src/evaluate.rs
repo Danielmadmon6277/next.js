@@ -185,7 +185,7 @@ async fn emit_evaluate_pool_assets_operation(
     );
 
     let output_root = (*chunking_context.output_root().await?).clone();
-    let _ = emit_package_json(output_root.clone()).resolve().await?;
+    let _ = emit_package_json(output_root.clone())?.resolve().await?;
     let _ = emit(bootstrap, output_root.clone()).resolve().await?;
 
     Ok(EmittedEvaluatePoolAssets {
