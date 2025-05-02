@@ -126,13 +126,13 @@ async fn resolve_reference_from_dir(
                 let realpath = file.realpath_with_links().await?;
                 for &symlink in &realpath.symlinks {
                     affecting_sources.push(ResolvedVc::upcast(
-                        FileSource::new(*symlink).to_resolved().await?,
+                        FileSource::new((symlink).clone()).to_resolved().await?,
                     ));
                 }
                 results.push((
                     RequestKey::new(matched_path.clone()),
                     ResolvedVc::upcast(
-                        RawModule::new(Vc::upcast(FileSource::new(*realpath.path)))
+                        RawModule::new(Vc::upcast(FileSource::new((realpath.path).clone())))
                             .to_resolved()
                             .await?,
                     ),
@@ -152,10 +152,7 @@ impl ModuleReference for DirAssetReference {
     #[turbo_tasks::function]
     async fn resolve_reference(&self) -> Result<Vc<ModuleResolveResult>> {
         let parent_path = self.source.ident().path().await?.parent();
-        Ok(resolve_reference_from_dir(
-            parent_path.resolve().await?,
-            *self.path,
-        ))
+        Ok(resolve_reference_from_dir(parent_path, *self.path))
     }
 }
 
