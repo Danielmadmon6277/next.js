@@ -547,7 +547,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
     let ModuleTypeResult {
         module_type: specified_type,
         referenced_package_json,
-    } = *module.determine_module_type().await?;
+    } = &*module.determine_module_type().await?;
 
     if let Some(package_json) = referenced_package_json.clone() {
         let span = tracing::info_span!("package.json reference");
@@ -627,7 +627,7 @@ pub(crate) async fn analyse_ecmascript_module_internal(
 
     let compile_time_info = compile_time_info_for_module_type(
         *raw_module.compile_time_info,
-        eval_context.is_esm(specified_type),
+        eval_context.is_esm(*specified_type),
     )
     .to_resolved()
     .await?;
@@ -853,10 +853,10 @@ pub(crate) async fn analyse_ecmascript_module_internal(
         }
 
         let exports = if !esm_exports.is_empty() || !esm_star_exports.is_empty() {
-            if specified_type == SpecifiedModuleType::CommonJs {
+            if *specified_type == SpecifiedModuleType::CommonJs {
                 SpecifiedModuleTypeIssue {
                     path: (*source.ident().path().await?).clone(),
-                    specified_type,
+                    specified_type: *specified_type,
                 }
                 .resolved_cell()
                 .emit();
@@ -2923,8 +2923,8 @@ async fn value_visitor_inner(
             }
         }
         JsValue::FreeVar(ref kind) => match &**kind {
-            "__dirname" => as_abs_path(origin.origin_path().parent()).await?,
-            "__filename" => as_abs_path(origin.origin_path()).await?,
+            "__dirname" => as_abs_path((*origin.origin_path().await?).parent()).await?,
+            "__filename" => as_abs_path((*origin.origin_path().await?).clone()).await?,
 
             "require" => JsValue::unknown_if(
                 ignore,
@@ -2982,13 +2982,16 @@ async fn require_resolve_visitor(
         let resolved = cjs_resolve_source(origin, request, None, true)
             .resolve()
             .await?;
-        let mut values = resolved
-            .primary_sources()
-            .await?
-            .iter()
-            .map(|&source| async move { require_resolve(source.ident().path()).await })
-            .try_join()
-            .await?;
+        let mut values =
+            resolved
+                .primary_sources()
+                .await?
+                .iter()
+                .map(|&source| async move {
+                    require_resolve((*source.ident().path().await?).clone()).await
+                })
+                .try_join()
+                .await?;
 
         match values.len() {
             0 => JsValue::unknown(
