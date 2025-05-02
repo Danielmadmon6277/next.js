@@ -314,8 +314,13 @@ impl StructuredError {
         if let Some(cause) = &self.cause {
             message.write_str("\nCaused by: ")?;
             message.write_str(
-                &Box::pin(cause.print(assets_for_source_mapping, root, root_path, formatting_mode))
-                    .await?,
+                &Box::pin(cause.print(
+                    assets_for_source_mapping,
+                    root.clone(),
+                    root_path.clone(),
+                    formatting_mode,
+                ))
+                .await?,
             )?;
         }
 
