@@ -3126,7 +3126,7 @@ async fn emit_resolve_error_issue(
     };
     ResolvingIssue {
         severity,
-        file_path: origin_path.to_resolved().await?,
+        file_path: origin_path.clone(),
         request_type: format!("{} request", reference_type.into_value()),
         request: request.to_resolved().await?,
         resolve_options: resolve_options.to_resolved().await?,
@@ -3153,7 +3153,7 @@ async fn emit_unresolvable_issue(
     };
     ResolvingIssue {
         severity,
-        file_path: origin_path.to_resolved().await?,
+        file_path: origin_path.clone(),
         request_type: format!("{} request", reference_type.into_value()),
         request: request.to_resolved().await?,
         resolve_options: resolve_options.to_resolved().await?,
