@@ -1432,10 +1432,7 @@ pub async fn read_matches(
                             ),
                         )),
                         RawDirectoryEntry::Symlink => {
-                            let fs_path = parent_fs_path
-                                .join(last_segment.into())
-                                .to_resolved()
-                                .await?;
+                            let fs_path = parent_fs_path.join(last_segment.into())?;
                             let LinkContent::Link { link_type, .. } = &*fs_path.read_link().await?
                             else {
                                 continue;
@@ -1453,9 +1450,9 @@ pub async fn read_matches(
                     let subpath = &str[..=str.rfind('/').unwrap()];
                     if handled.insert(subpath) {
                         let joined = if force_in_lookup_dir {
-                            lookup_dir.try_join_inside(subpath.into()).await?
+                            lookup_dir.try_join_inside(subpath.into())?
                         } else {
-                            lookup_dir.try_join(subpath.into()).await?
+                            lookup_dir.try_join(subpath.into())?
                         };
                         let Some(fs_path) = *joined else {
                             continue;
