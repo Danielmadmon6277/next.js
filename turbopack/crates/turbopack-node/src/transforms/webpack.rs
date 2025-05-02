@@ -471,7 +471,7 @@ impl EvaluateContext for WebpackLoaderContext {
             context_ident: self.context_ident_for_issue,
             assets_for_source_mapping: pool.assets_for_source_mapping,
             assets_root: pool.assets_root,
-            root_path: self.chunking_context.root_path().await?,
+            root_path: (*self.chunking_context.root_path().await?).clone(),
         }
         .resolved_cell()
         .emit();
@@ -630,7 +630,7 @@ impl EvaluateContext for WebpackLoaderContext {
                 .collect();
 
             EvaluateErrorLoggingIssue {
-                file_path: (*self.context_ident_for_issue.path().to_resolved().await?).clone(),
+                file_path: (*self.context_ident_for_issue.path().await?).clone(),
                 logging: logs,
                 severity: if has_errors {
                     IssueSeverity::Error.resolved_cell()
