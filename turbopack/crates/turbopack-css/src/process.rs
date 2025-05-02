@@ -302,7 +302,7 @@ pub async fn parse_css(
     };
     async move {
         let content = source.content();
-        let fs_path = source.ident().path();
+        let fs_path = (*source.ident().path().await?).clone();
         let ident_str = &*source.ident().to_string().await?;
         Ok(match &*content.await? {
             AssetContent::Redirect { .. } => ParseCssResult::Unparseable.cell(),
@@ -612,8 +612,8 @@ struct ParsingIssue {
 #[turbo_tasks::value_impl]
 impl Issue for ParsingIssue {
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.file
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.file.clone().cell()
     }
 
     #[turbo_tasks::function]
