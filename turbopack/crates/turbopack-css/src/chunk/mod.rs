@@ -102,7 +102,7 @@ impl CssChunk {
             {
                 fileify_source_map(
                     content.source_map.as_ref(),
-                    self.chunking_context().root_path(),
+                    (*self.chunking_context().root_path().await?).clone(),
                 )
                 .await?
             } else {
