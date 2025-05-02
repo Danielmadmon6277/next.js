@@ -540,12 +540,12 @@ impl EvaluateContext for WebpackLoaderContext {
             }
             InfoMessage::EmittedError { error, severity } => {
                 EvaluateEmittedErrorIssue {
-                    file_path: self.context_ident_for_issue.path().to_resolved().await?,
+                    file_path: (*self.context_ident_for_issue.path().await?).clone(),
                     error,
                     severity: severity.resolved_cell(),
                     assets_for_source_mapping: pool.assets_for_source_mapping,
                     assets_root: pool.assets_root,
-                    project_dir: self.chunking_context.root_path().to_resolved().await?,
+                    project_dir: (*self.chunking_context.root_path().await?).clone(),
                 }
                 .resolved_cell()
                 .emit();
