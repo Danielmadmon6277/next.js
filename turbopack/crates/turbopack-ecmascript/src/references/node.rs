@@ -76,7 +76,7 @@ async fn resolve_reference_from_dir(
     let matches = match (abs_path, rel_path) {
         (Some(abs_path), Some(rel_path)) => Either::Right(
             read_matches(
-                parent_path.root().resolve().await?,
+                (*parent_path.root().await?).clone(),
                 "/ROOT/".into(),
                 true,
                 Pattern::new(abs_path.or_any_nested_file()),
