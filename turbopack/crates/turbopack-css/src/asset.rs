@@ -174,7 +174,7 @@ impl CssChunkPlaceable for CssModuleAsset {}
 #[turbo_tasks::value_impl]
 impl ResolveOrigin for CssModuleAsset {
     #[turbo_tasks::function]
-    fn origin_path(&self) -> FileSystemPath {
+    fn origin_path(&self) -> Vc<FileSystemPath> {
         self.source.ident().path()
     }
 
