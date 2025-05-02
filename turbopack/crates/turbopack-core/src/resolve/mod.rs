@@ -1343,16 +1343,13 @@ pub async fn find_context_file_or_package_key(
     }
     if refs.is_empty() {
         // Tailcall
-        Ok(find_context_file(
-            lookup_path.parent().resolve().await?,
-            names,
-        ))
+        Ok(find_context_file(lookup_path.parent(), names))
     } else {
-        let parent_result = find_context_file(lookup_path.parent().resolve().await?, names).await?;
+        let parent_result = find_context_file(lookup_path.parent(), names).await?;
         Ok(match &*parent_result {
             FindContextFileResult::Found(p, r) => {
                 refs.extend(r.iter().copied());
-                FindContextFileResult::Found(*p, refs)
+                FindContextFileResult::Found(p.clone(), refs)
             }
             FindContextFileResult::NotFound(r) => {
                 refs.extend(r.iter().copied());
@@ -1390,12 +1387,12 @@ async fn find_package(
                 let mut lookup_path = lookup_path;
                 let mut lookup_path_value = lookup_path.await?;
                 // For clippy -- This explicit deref is necessary
-                let root = &*root_vc.await?;
+                let root = root_vc;
                 while lookup_path_value.is_inside_ref(root) {
                     for name in names.iter() {
-                        let fs_path = lookup_path.join(name.clone());
+                        let fs_path = lookup_path.join(name.clone())?;
                         if let Some(fs_path) = dir_exists(fs_path, &mut affecting_sources).await? {
-                            let fs_path = fs_path.join(package_name.clone());
+                            let fs_path = fs_path.join(package_name.clone())?;
                             if let Some(fs_path) =
                                 dir_exists(fs_path, &mut affecting_sources).await?
                             {
