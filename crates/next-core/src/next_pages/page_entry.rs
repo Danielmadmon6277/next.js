@@ -191,8 +191,8 @@ async fn process_global_item(
     reference_type: Value<ReferenceType>,
     module_context: Vc<Box<dyn AssetContext>>,
 ) -> Result<Vc<Box<dyn Module>>> {
-    let source = Vc::upcast(FileSource::new(item.file_path().await?));
-    module_context.process(source, reference_type).module()
+    let source = Vc::upcast(FileSource::new((*item.file_path().await?).clone()));
+    Ok(module_context.process(source, reference_type).module())
 }
 
 #[turbo_tasks::function]
