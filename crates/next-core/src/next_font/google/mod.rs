@@ -630,7 +630,7 @@ async fn fetch_from_google_fonts(
             //
             // TODO(WEB-283): Use fallback in dev in this case
             // TODO(WEB-293): Fail production builds (not dev) in this case
-            err.to_issue(IssueSeverity::Warning.into(), virtual_path)
+            err.to_issue(IssueSeverity::Warning.into(), virtual_path.cell())
                 .to_resolved()
                 .await?
                 .emit();
@@ -664,7 +664,7 @@ async fn get_mock_stylesheet(
     } = *execution_context.await?;
     let asset_context =
         node_evaluate_asset_context(execution_context, None, None, "next_font".into(), false);
-    let loader_path = mock_fs.root().join("loader.js".into());
+    let loader_path = mock_fs.root().await?.join("loader.js".into());
     let mocked_response_asset = asset_context
         .process(
             Vc::upcast(VirtualSource::new(
@@ -687,7 +687,7 @@ async fn get_mock_stylesheet(
         )
         .module();
 
-    let root = mock_fs.root();
+    let root = (*mock_fs.root().await?).clone();
     let val = evaluate(
         mocked_response_asset,
         root.clone(),
