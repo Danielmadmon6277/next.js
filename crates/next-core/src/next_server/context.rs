@@ -337,8 +337,7 @@ pub async fn get_server_resolve_options_context(
             .await?
             .as_ref()
             .map(|p| project_path.join(p.to_owned()))
-            .to_resolved()
-            .await?,
+            .transpose()?,
         rules: vec![(
             foreign_code_context_condition,
             resolve_options_context.clone().resolved_cell(),
