@@ -178,7 +178,7 @@ pub async fn get_client_resolve_options_context(
         module: true,
         before_resolve_plugins: vec![
             ResolvedVc::upcast(
-                get_invalid_server_only_resolve_plugin(project_path)
+                get_invalid_server_only_resolve_plugin(project_path.clone())
                     .to_resolved()
                     .await?,
             ),
@@ -194,7 +194,7 @@ pub async fn get_client_resolve_options_context(
             ),
         ],
         after_resolve_plugins: vec![ResolvedVc::upcast(
-            NextSharedRuntimeResolvePlugin::new(*project_path)
+            NextSharedRuntimeResolvePlugin::new(project_path.clone())
                 .to_resolved()
                 .await?,
         )],
