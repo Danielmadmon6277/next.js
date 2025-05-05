@@ -22,8 +22,6 @@ impl EcmascriptBrowserChunkVersion {
         chunk_path: FileSystemPath,
         content: Vc<EcmascriptChunkContent>,
     ) -> Result<Vc<Self>> {
-        let output_root = output_root.await?;
-        let chunk_path = chunk_path.await?;
         let chunk_path = if let Some(path) = output_root.get_path_to(&chunk_path) {
             path
         } else {
