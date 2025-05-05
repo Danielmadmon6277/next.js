@@ -265,7 +265,7 @@ async fn get_pages_structure_for_root_directory(
             pages_path.join("_app".into())?,
             page_extensions,
             Some(
-                get_next_package(project_root)
+                get_next_package(project_root.clone())
                     .await?
                     .join("app.js".into())?,
             ),
@@ -280,7 +280,7 @@ async fn get_pages_structure_for_root_directory(
             pages_path.join("_document".into())?,
             page_extensions,
             Some(
-                get_next_package(project_root)
+                get_next_package(project_root.clone())
                     .await?
                     .join("document.js".into())?,
             ),
@@ -295,7 +295,7 @@ async fn get_pages_structure_for_root_directory(
             pages_path.join("_error".into())?,
             page_extensions,
             Some(
-                get_next_package(project_root)
+                get_next_package(project_root.clone())
                     .await?
                     .join("error.js".into())?,
             ),
