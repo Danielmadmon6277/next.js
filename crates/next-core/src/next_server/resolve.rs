@@ -376,9 +376,10 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
             (FileType::CommonJs, true) => {
                 // It would be more efficient to use an CJS external instead of an ESM external,
                 // but we need to verify if that would be correct (as in resolves to the same file).
-                let node_resolve_options = node_cjs_resolve_options(lookup_path.root());
+                let node_resolve_options =
+                    node_cjs_resolve_options((*lookup_path.root().await?).clone());
                 let node_resolved = resolve(
-                    *self.project_path,
+                    self.project_path.clone(),
                     reference_type.clone(),
                     request,
                     node_resolve_options,
