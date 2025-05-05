@@ -244,17 +244,15 @@ pub struct OptionAppDir(Option<FileSystemPath>);
 /// Finds and returns the [DirectoryTree] of the app directory if existing.
 #[turbo_tasks::function]
 pub async fn find_app_dir(project_path: FileSystemPath) -> Result<Vc<OptionAppDir>> {
-    let app = project_path.join("app".into());
-    let src_app = project_path.join("src/app".into());
+    let app = project_path.join("app".into())?;
+    let src_app = project_path.join("src/app".into())?;
     let app_dir = if *app.get_type().await? == FileSystemEntryType::Directory {
         app
     } else if *src_app.get_type().await? == FileSystemEntryType::Directory {
         src_app
     } else {
         return Ok(Vc::cell(None));
-    }
-    .to_resolved()
-    .await?;
+    };
 
     Ok(Vc::cell(Some(app_dir)))
 }
@@ -265,7 +263,7 @@ async fn get_directory_tree(
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Result<Vc<DirectoryTree>> {
     let span = {
-        let dir = dir.to_string().await?.to_string();
+        let dir = dir.to_string();
         tracing::info_span!("read app directory tree", name = dir)
     };
     get_directory_tree_internal(dir, page_extensions)
@@ -298,7 +296,7 @@ async fn get_directory_tree_internal(
     let mut metadata_twitter = Vec::new();
 
     for (basename, entry) in entries {
-        let entry = entry.resolve_symlink().await?;
+        let entry = entry.clone().resolve_symlink().await?;
         match entry {
             DirectoryEntry::File(file) => {
                 // Do not process .d.ts files as routes
@@ -308,17 +306,17 @@ async fn get_directory_tree_internal(
                 if let Some((stem, ext)) = basename.split_once('.') {
                     if page_extensions_value.iter().any(|e| e == ext) {
                         match stem {
-                            "page" => modules.page = Some(file),
-                            "layout" => modules.layout = Some(file),
-                            "error" => modules.error = Some(file),
-                            "global-error" => modules.global_error = Some(file),
-                            "loading" => modules.loading = Some(file),
-                            "template" => modules.template = Some(file),
-                            "forbidden" => modules.forbidden = Some(file),
-                            "unauthorized" => modules.unauthorized = Some(file),
-                            "not-found" => modules.not_found = Some(file),
-                            "default" => modules.default = Some(file),
-                            "route" => modules.route = Some(file),
+                            "page" => modules.page = Some(file.clone()),
+                            "layout" => modules.layout = Some(file.clone()),
+                            "error" => modules.error = Some(file.clone()),
+                            "global-error" => modules.global_error = Some(file.clone()),
+                            "loading" => modules.loading = Some(file.clone()),
+                            "template" => modules.template = Some(file.clone()),
+                            "forbidden" => modules.forbidden = Some(file.clone()),
+                            "unauthorized" => modules.unauthorized = Some(file.clone()),
+                            "not-found" => modules.not_found = Some(file.clone()),
+                            "default" => modules.default = Some(file.clone()),
+                            "route" => modules.route = Some(file.clone()),
                             _ => {}
                         }
                     }
@@ -354,16 +352,12 @@ async fn get_directory_tree_internal(
                     continue;
                 }
 
-                let file_value = file.await?;
+                let file_value = file.clone();
                 let file_name = file_value.file_name();
                 let basename = file_name
                     .rsplit_once('.')
                     .map_or(file_name, |(basename, _)| basename);
-                let alt_path = file
-                    .parent()
-                    .join(format!("{}.alt.txt", basename).into())
-                    .to_resolved()
-                    .await?;
+                let alt_path = file.parent().join(format!("{}.alt.txt", basename).into())?;
                 let alt_path = matches!(&*alt_path.get_type().await?, FileSystemEntryType::File)
                     .then_some(alt_path);
 
@@ -378,7 +372,7 @@ async fn get_directory_tree_internal(
             DirectoryEntry::Directory(dir) => {
                 // appDir ignores paths starting with an underscore
                 if !basename.starts_with('_') {
-                    let result = get_directory_tree(*dir, page_extensions)
+                    let result = get_directory_tree(dir.clone(), page_extensions)
                         .to_resolved()
                         .await?;
                     subdirectories.insert(basename.clone(), result);
