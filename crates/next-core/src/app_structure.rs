@@ -1082,7 +1082,7 @@ async fn default_route_tree(
         parallel_routes: FxIndexMap::default(),
         modules: if let Some(default) = default_component {
             AppDirModules {
-                default: Some(default.to_resolved().await?),
+                default: Some(default),
                 ..Default::default()
             }
         } else {
@@ -1090,9 +1090,8 @@ async fn default_route_tree(
             AppDirModules {
                 default: Some(
                     get_next_package(app_dir)
-                        .join("dist/client/components/parallel-route-default.js".into())
-                        .to_resolved()
-                        .await?,
+                        .await?
+                        .join("dist/client/components/parallel-route-default.js".into())?,
                 ),
                 ..Default::default()
             }
@@ -1153,7 +1152,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         let app_path = AppPath::from(app_page.clone());
 
         let loader_tree = *directory_tree_to_loader_tree(
-            *app_dir,
+            app_dir.clone(),
             global_metadata,
             directory_name.clone(),
             directory_tree_vc,
@@ -1191,11 +1190,11 @@ async fn directory_tree_to_entrypoints_internal_untraced(
 
     for meta in sitemap
         .iter()
-        .copied()
-        .chain(icon.iter().copied().map(MetadataItem::from))
-        .chain(apple.iter().copied().map(MetadataItem::from))
-        .chain(twitter.iter().copied().map(MetadataItem::from))
-        .chain(open_graph.iter().copied().map(MetadataItem::from))
+        .cloned()
+        .chain(icon.iter().cloned().map(MetadataItem::from))
+        .chain(apple.iter().cloned().map(MetadataItem::from))
+        .chain(twitter.iter().cloned().map(MetadataItem::from))
+        .chain(open_graph.iter().cloned().map(MetadataItem::from))
     {
         let app_page = app_page.clone_push_str(&get_metadata_route_name(meta).await?)?;
 
@@ -1232,6 +1231,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         if modules.layout.is_none() {
             modules.layout = Some(
                 get_next_package(app_dir.clone())
+                    .await?
                     .join("dist/client/components/default-layout.js".into())?,
             );
         }
@@ -1239,18 +1239,21 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         if modules.not_found.is_none() {
             modules.not_found = Some(
                 get_next_package(app_dir.clone())
+                    .await?
                     .join("dist/client/components/not-found-error.js".into())?,
             );
         }
         if modules.forbidden.is_none() {
             modules.forbidden = Some(
                 get_next_package(app_dir.clone())
+                    .await?
                     .join("dist/client/components/forbidden-error.js".into())?,
             );
         }
         if modules.unauthorized.is_none() {
             modules.unauthorized = Some(
                 get_next_package(app_dir.clone())
+                    .await?
                     .join("dist/client/components/unauthorized-error.js".into())?,
             );
         }
@@ -1272,10 +1275,9 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                             modules: AppDirModules {
                                 page: match modules.not_found {
                                     Some(v) => Some(v),
-                                    None => Some(get_next_package(*app_dir)
-                                        .join("dist/client/components/not-found-error.js".into())
-                                        .to_resolved()
-                                        .await?),
+                                    None => Some(get_next_package(app_dir.clone())
+                                        .await?
+                                        .join("dist/client/components/not-found-error.js".into())?),
                                 },
                                 ..Default::default()
                             },
@@ -1316,7 +1318,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
             }
 
             let map = directory_tree_to_entrypoints_internal(
-                *app_dir,
+                app_dir.clone(),
                 global_metadata,
                 subdir_name.clone(),
                 *subdirectory,
@@ -1343,7 +1345,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                         let app_path = AppPath::from(page.clone());
 
                         let loader_tree = directory_tree_to_loader_tree(
-                            *app_dir,
+                            app_dir.clone(),
                             global_metadata,
                             directory_name.clone(),
                             directory_tree_vc,
@@ -1408,7 +1410,7 @@ pub async fn get_global_metadata(
     let mut metadata = GlobalMetadata::default();
 
     for (basename, entry) in entries {
-        let DirectoryEntry::File(file) = *entry else {
+        let DirectoryEntry::File(file) = &*entry else {
             continue;
         };
 
