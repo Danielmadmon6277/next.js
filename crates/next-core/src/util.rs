@@ -57,7 +57,7 @@ pub async fn pathname_for_path(
     path_ty: PathType,
 ) -> Result<Vc<RcStr>> {
     let server_path_value = server_path.clone();
-    let path = if let Some(path) = server_root.clone().get_path_to(server_path_value) {
+    let path = if let Some(path) = server_root.clone().get_path_to(&server_path_value) {
         path
     } else {
         bail!(
@@ -117,17 +117,16 @@ pub async fn foreign_code_context_condition(
     next_config: Vc<NextConfig>,
     project_path: FileSystemPath,
 ) -> Result<ContextCondition> {
-    let transpiled_packages = get_transpiled_packages(next_config, *project_path).await?;
+    let transpiled_packages = get_transpiled_packages(next_config, project_path.clone()).await?;
 
     // The next template files are allowed to import the user's code via import
     // mapping, and imports must use the project-level [ResolveOptions] instead
     // of the `node_modules` specific resolve options (the template files are
     // technically node module files).
     let not_next_template_dir = ContextCondition::not(ContextCondition::InPath(
-        get_next_package(*project_path)
-            .join(NEXT_TEMPLATE_PATH.into())
-            .to_resolved()
-            .await?,
+        get_next_package(project_path.clone())
+            .await?
+            .join(NEXT_TEMPLATE_PATH.into())?,
     ));
 
     let result = ContextCondition::all(vec![
@@ -151,19 +150,9 @@ pub async fn foreign_code_context_condition(
 // subject to Next.js's configuration even if it's embedded assets.
 pub async fn internal_assets_conditions() -> Result<ContextCondition> {
     Ok(ContextCondition::any(vec![
-        ContextCondition::InPath(next_js_fs().root().to_resolved().await?),
-        ContextCondition::InPath(
-            turbopack_ecmascript_runtime::embed_fs()
-                .root()
-                .to_resolved()
-                .await?,
-        ),
-        ContextCondition::InPath(
-            turbopack_node::embed_js::embed_fs()
-                .root()
-                .to_resolved()
-                .await?,
-        ),
+        ContextCondition::InPath((*next_js_fs().root().await?).clone()),
+        ContextCondition::InPath((*turbopack_ecmascript_runtime::embed_fs().root().await?).clone()),
+        ContextCondition::InPath((*turbopack_node::embed_js::embed_fs().root().await?).clone()),
     ]))
 }
 
@@ -683,7 +672,7 @@ pub async fn load_next_js_template(
     injections: FxIndexMap<&'static str, RcStr>,
     imports: FxIndexMap<&'static str, Option<RcStr>>,
 ) -> Result<Vc<Box<dyn Source>>> {
-    let path = virtual_next_js_template_path(project_path, path.to_string());
+    let path = virtual_next_js_template_path(project_path, path.to_string()).await?;
 
     let content = &*file_content_rope(path.read()).await?;
     let content = content.to_str()?.into_owned();
@@ -942,16 +931,21 @@ pub async fn file_content_rope(content: Vc<FileContent>) -> Result<Vc<Rope>> {
     Ok(file.content().to_owned().cell())
 }
 
-pub fn virtual_next_js_template_path(project_path: FileSystemPath, file: String) -> FileSystemPath {
+pub async fn virtual_next_js_template_path(
+    project_path: FileSystemPath,
+    file: String,
+) -> Result<FileSystemPath> {
     debug_assert!(!file.contains('/'));
-    get_next_package(project_path).join(format!("{NEXT_TEMPLATE_PATH}/{file}").into())
+    get_next_package(project_path)
+        .await?
+        .join(format!("{NEXT_TEMPLATE_PATH}/{file}").into())
 }
 
 pub async fn load_next_js_templateon<T: DeserializeOwned>(
     project_path: FileSystemPath,
     path: RcStr,
 ) -> Result<T> {
-    let file_path = get_next_package(*project_path).join(path.clone());
+    let file_path = get_next_package(*project_path).await?.join(path.clone());
 
     let content = &*file_path.read().await?;
 
