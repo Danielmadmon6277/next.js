@@ -342,7 +342,9 @@ async fn dynamic_site_map_route_source(
 
     let file = File::from(code);
     let source = VirtualSource::new(
-        path.parent().join(format!("{stem}--route-entry.js").into()),
+        path.parent()
+            .join(format!("{stem}--route-entry.js").into())?
+            .cell(),
         AssetContent::file(file.into()),
     );
 
@@ -402,7 +404,9 @@ async fn dynamic_image_route_source(path: FileSystemPath) -> Result<Vc<Box<dyn S
 
     let file = File::from(code);
     let source = VirtualSource::new(
-        path.parent().join(format!("{stem}--route-entry.js").into()),
+        path.parent()
+            .join(format!("{stem}--route-entry.js").into())?
+            .cell(),
         AssetContent::file(file.into()),
     );
 
