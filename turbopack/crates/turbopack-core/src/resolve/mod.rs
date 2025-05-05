@@ -1500,7 +1500,7 @@ pub async fn resolve_raw(
 
     let mut results = Vec::new();
 
-    let lookup_dir_str = lookup_dir.to_string();
+    let lookup_dir_str = lookup_dir.value_to_string().await?;
     let pat = path.await?;
     if let Some(pat) = pat
         .filter_could_match("/ROOT/")
@@ -1568,12 +1568,12 @@ pub async fn resolve_inline(
     options: Vc<ResolveOptions>,
 ) -> Result<Vc<ResolveResult>> {
     let span = {
-        let lookup_path = lookup_path.to_string();
-        let request = request.to_string().await?.to_string();
+        let lookup_path = lookup_path.value_to_string().await?;
+        let request = request.to_string().await?;
         tracing::info_span!(
             "resolving",
-            lookup_path = lookup_path,
-            request = request,
+            lookup_path = %lookup_path,
+            request = %request,
             reference_type = display(&reference_type),
         )
     };
