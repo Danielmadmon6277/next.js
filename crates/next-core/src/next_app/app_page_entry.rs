@@ -128,7 +128,7 @@ pub async fn get_app_page_entry(
     if is_edge {
         rsc_entry = wrap_edge_page(
             *ResolvedVc::upcast(module_asset_context),
-            project_root,
+            project_root.clone(),
             rsc_entry,
             page,
             next_config,
