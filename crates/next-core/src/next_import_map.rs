@@ -996,7 +996,7 @@ async fn insert_next_shared_aliases(
 }
 
 #[turbo_tasks::function]
-pub async fn get_next_package(context_directory: FileSystemPath) -> Result<FileSystemPath> {
+pub async fn get_next_package(context_directory: FileSystemPath) -> Result<Vc<FileSystemPath>> {
     let result = resolve(
         context_directory,
         Value::new(ReferenceType::CommonJs(CommonJsReferenceSubType::Undefined)),
@@ -1007,7 +1007,7 @@ pub async fn get_next_package(context_directory: FileSystemPath) -> Result<FileS
         .first_source()
         .await?
         .context("Next.js package not found")?;
-    Ok(source.ident().path().parent())
+    Ok(source.ident().path().parent().cell())
 }
 
 pub async fn insert_alias_option<const N: usize>(
