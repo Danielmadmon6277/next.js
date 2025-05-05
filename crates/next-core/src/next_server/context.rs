@@ -143,7 +143,7 @@ pub async fn get_server_resolve_options_context(
     .await?;
     let foreign_code_context_condition =
         foreign_code_context_condition(next_config, project_path.clone()).await?;
-    let root_dir = (*project_path.root().to_resolved().await?).clone();
+    let root_dir = (*project_path.root().await?).clone();
     let module_feature_report_resolve_plugin =
         ModuleFeatureReportResolvePlugin::new(project_path.clone())
             .to_resolved()
