@@ -13,10 +13,9 @@ pub async fn get_relay_transform_rule(
     project_path: FileSystemPath,
 ) -> Result<Option<ModuleRule>> {
     let enable_mdx_rs = next_config.mdx_rs().await?.is_some();
-    let project_path = &*project_path.await?;
     let module_rule = next_config.compiler().await?.relay.as_ref().map(|config| {
         get_ecma_transform_rule(
-            Box::new(RelayTransformer::new(config, project_path)),
+            Box::new(RelayTransformer::new(config, project_path.clone())),
             enable_mdx_rs,
             true,
         )
