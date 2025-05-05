@@ -53,7 +53,7 @@ pub async fn get_next_client_transforms_rules(
     let cache_kinds = next_config.cache_kinds().to_resolved().await?;
     let mut is_app_dir = false;
 
-    match context_ty {
+    match &context_ty {
         ClientContextType::Pages { pages_dir } => {
             if !foreign_code {
                 rules.push(
