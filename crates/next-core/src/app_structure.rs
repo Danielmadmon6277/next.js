@@ -107,7 +107,7 @@ pub async fn get_metadata_route_name(meta: MetadataItem) -> Result<Vc<RcStr>> {
             let Some(stem) = path.file_stem() else {
                 bail!(
                     "unable to resolve file stem for metadata item at {}",
-                    path.to_string()
+                    path.value_to_string().await?
                 );
             };
 
@@ -263,7 +263,7 @@ async fn get_directory_tree(
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Result<Vc<DirectoryTree>> {
     let span = {
-        let dir = dir.to_string();
+        let dir = dir.value_to_string().await?;
         tracing::info_span!("read app directory tree", name = dir)
     };
     get_directory_tree_internal(dir, page_extensions)
