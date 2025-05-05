@@ -714,7 +714,7 @@ impl AssetContext for ModuleAssetContext {
         };
         // TODO move `apply_commonjs/esm_resolve_options` etc. to here
         Ok(resolve_options(
-            (*origin_path.parent().await?).clone(),
+            origin_path.parent(),
             *module_asset_context.await?.resolve_options_context,
         ))
     }
@@ -727,7 +727,7 @@ impl AssetContext for ModuleAssetContext {
         resolve_options: Vc<ResolveOptions>,
         reference_type: Value<ReferenceType>,
     ) -> Result<Vc<ModuleResolveResult>> {
-        let context_path = origin_path.parent().resolve().await?;
+        let context_path = origin_path.parent();
 
         let result = resolve(
             context_path,
@@ -794,10 +794,11 @@ impl AssetContext for ModuleAssetContext {
                                     traced,
                                     self.module_options_context()
                                         .await?
-                                        .enable_externals_tracing,
+                                        .enable_externals_tracing
+                                        .clone(),
                                 ) {
                                     let externals_context = externals_tracing_module_context(ty);
-                                    let root_origin = tracing_root.join("_".into());
+                                    let root_origin = tracing_root.join("_".into())?;
 
                                     // Normalize reference type, there is no such thing as a
                                     // `ReferenceType::EcmaScriptModules(ImportPart(Evaluation))`
@@ -822,7 +823,7 @@ impl AssetContext for ModuleAssetContext {
 
                                     let external_result = externals_context
                                         .resolve_asset(
-                                            root_origin,
+                                            root_origin.clone(),
                                             Request::parse_string(name.clone()),
                                             externals_context.resolve_options(
                                                 root_origin,
@@ -947,7 +948,7 @@ pub fn emit_with_completion_operation(
     asset: ResolvedVc<Box<dyn OutputAsset>>,
     output_dir: FileSystemPath,
 ) -> Vc<()> {
-    emit_with_completion(*asset, *output_dir)
+    emit_with_completion(*asset, output_dir)
 }
 
 #[turbo_tasks::function]
@@ -967,7 +968,7 @@ async fn emit_aggregated_assets(
         }
         AggregatedGraphNodeContent::Children(children) => {
             for aggregated in children {
-                let _ = emit_aggregated_assets(**aggregated, output_dir);
+                let _ = emit_aggregated_assets(**aggregated, output_dir.clone());
             }
         }
     }
@@ -975,8 +976,9 @@ async fn emit_aggregated_assets(
 }
 
 #[turbo_tasks::function]
-pub fn emit_asset(asset: Vc<Box<dyn OutputAsset>>) {
-    let _ = asset.content().write(asset.path());
+pub async fn emit_asset(asset: Vc<Box<dyn OutputAsset>>) -> Result<()> {
+    let _ = asset.content().write((*asset.path().await?).clone());
+    Ok(())
 }
 
 #[turbo_tasks::function]
@@ -984,8 +986,7 @@ pub async fn emit_asset_into_dir(
     asset: Vc<Box<dyn OutputAsset>>,
     output_dir: FileSystemPath,
 ) -> Result<()> {
-    let dir = &*output_dir.await?;
-    if asset.path().await?.is_inside_ref(dir) {
+    if asset.path().await?.is_inside_ref(&output_dir) {
         let _ = emit_asset(asset);
     }
     Ok(())
