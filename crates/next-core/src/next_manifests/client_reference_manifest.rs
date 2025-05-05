@@ -352,12 +352,12 @@ impl ClientReferenceManifest {
 
             // per layout segment chunks need to be emitted into the manifest too
             for (server_component, client_chunks) in layout_segment_client_chunks.iter() {
-                let server_component_name: RcStr = server_component
+                let server_component_name = server_component
                     .server_path()
                     .await?
                     .with_extension("".into())
-                    .to_string()
-                    .into();
+                    .value_to_string()
+                    .await?;
                 let mut entry_css_files_with_chunk = Vec::new();
                 let entry_js_files = entry_manifest
                     .entry_js_files
