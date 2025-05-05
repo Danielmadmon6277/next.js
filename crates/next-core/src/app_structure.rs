@@ -765,8 +765,8 @@ struct DuplicateParallelRouteIssue {
 #[turbo_tasks::value_impl]
 impl Issue for DuplicateParallelRouteIssue {
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        self.app_dir.join(self.page.to_string().into())
+    fn file_path(&self) -> Result<Vc<FileSystemPath>> {
+        Ok(self.app_dir.join(self.page.to_string().into())?.cell())
     }
 
     #[turbo_tasks::function]
@@ -1046,7 +1046,7 @@ async fn directory_tree_to_loader_tree_internal(
                     app_dir,
                     global_metadata,
                     app_page.clone(),
-                    default.map(|v| *v),
+                    default.map(|v| v),
                 )
                 .await?,
             );
@@ -1059,7 +1059,7 @@ async fn directory_tree_to_loader_tree_internal(
                 app_dir,
                 global_metadata,
                 app_page,
-                modules.default.map(|v| *v),
+                modules.default.map(|v| v),
             )
             .await?;
         } else {
