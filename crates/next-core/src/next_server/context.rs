@@ -148,9 +148,10 @@ pub async fn get_server_resolve_options_context(
         ModuleFeatureReportResolvePlugin::new(project_path.clone())
             .to_resolved()
             .await?;
-    let invalid_client_only_resolve_plugin = get_invalid_client_only_resolve_plugin(project_path)
-        .to_resolved()
-        .await?;
+    let invalid_client_only_resolve_plugin =
+        get_invalid_client_only_resolve_plugin(project_path.clone())
+            .to_resolved()
+            .await?;
     let invalid_styled_jsx_client_only_resolve_plugin =
         get_invalid_styled_jsx_resolve_plugin(project_path.clone())
             .to_resolved()
@@ -158,7 +159,7 @@ pub async fn get_server_resolve_options_context(
 
     // Always load these predefined packages as external.
     let mut external_packages: Vec<RcStr> = load_next_js_templateon(
-        project_path,
+        project_path.clone(),
         "dist/lib/server-external-packages.json".into(),
     )
     .await?;
