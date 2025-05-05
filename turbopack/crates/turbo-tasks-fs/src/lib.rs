@@ -1019,7 +1019,8 @@ pub struct FileSystemPath {
 }
 
 impl FileSystemPath {
-    pub async fn uri(&self) -> Result<RcStr> {
+    /// TOOD: Rename this
+    pub async fn value_to_string(&self) -> Result<RcStr> {
         Ok(format!("[{}]/{}", self.fs.to_string().await?, self.path).into())
     }
 
