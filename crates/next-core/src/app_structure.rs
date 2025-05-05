@@ -1014,7 +1014,7 @@ async fn directory_tree_to_loader_tree_internal(
             let subdir_name: RcStr = format!("@{}", key).into();
 
             let default = if key == "children" {
-                modules.default
+                modules.default.clone()
             } else if let Some(subdirectory) = directory_tree.subdirectories.get(&subdir_name) {
                 subdirectory.modules.default.clone()
             } else {
