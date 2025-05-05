@@ -33,7 +33,7 @@ impl RuntimeEntry {
         };
 
         let modules = cjs_resolve(
-            Vc::upcast(PlainResolveOrigin::new(asset_context, *path)),
+            Vc::upcast(PlainResolveOrigin::new(asset_context, path.clone())),
             *request,
             None,
             false,
