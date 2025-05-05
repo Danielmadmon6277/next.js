@@ -24,7 +24,7 @@ impl RuntimeEntry {
         self: Vc<Self>,
         asset_context: Vc<Box<dyn AssetContext>>,
     ) -> Result<Vc<EvaluatableAssets>> {
-        let (request, path) = match &*self.await? {
+        let (request, path) = match self.await? {
             RuntimeEntry::Evaluatable(e) => return Ok(EvaluatableAssets::one(**e)),
             RuntimeEntry::Source(source) => {
                 return Ok(EvaluatableAssets::one(source.to_evaluatable(asset_context)));
@@ -34,7 +34,7 @@ impl RuntimeEntry {
 
         let modules = cjs_resolve(
             Vc::upcast(PlainResolveOrigin::new(asset_context, path.clone())),
-            *request,
+            **request,
             None,
             false,
         )
