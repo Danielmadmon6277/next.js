@@ -68,8 +68,11 @@ impl EcmascriptBrowserEvaluateChunk {
     }
 
     #[turbo_tasks::function]
-    fn chunks_data(&self) -> Vc<ChunksData> {
-        ChunkData::from_assets(self.chunking_context.output_root(), *self.other_chunks)
+    async fn chunks_data(&self) -> Result<Vc<ChunksData>> {
+        Ok(ChunkData::from_assets(
+            (*self.chunking_context.output_root().await?).clone(),
+            *self.other_chunks,
+        ))
     }
 
     #[turbo_tasks::function]
@@ -254,7 +257,7 @@ fn modifier() -> Vc<RcStr> {
 #[turbo_tasks::value_impl]
 impl OutputAsset for EcmascriptBrowserEvaluateChunk {
     #[turbo_tasks::function]
-    async fn path(self: Vc<Self>) -> Result<FileSystemPath> {
+    async fn path(self: Vc<Self>) -> Result<Vc<FileSystemPath>> {
         let this = self.await?;
         let ident = self.ident_for_path();
         Ok(this
