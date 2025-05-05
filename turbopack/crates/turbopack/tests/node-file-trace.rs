@@ -601,7 +601,7 @@ async fn exec_node(directory: RcStr, path: FileSystemPath) -> Result<Vc<CommandO
     let f = Path::new(&directory).join(&p.path);
     let dir = f.parent().unwrap();
     println!("[CWD]: {}", dir.display());
-    let label = path.to_string();
+    let label = path.value_to_string().await?;
 
     if p.path.contains("mdx") {
         cmd.arg("--experimental-loader=@mdx-js/node-loader")
