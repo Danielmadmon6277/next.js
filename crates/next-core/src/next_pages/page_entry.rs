@@ -159,7 +159,7 @@ pub async fn create_page_ssr_entry_module(
         if reference_type == ReferenceType::Entry(EntryReferenceSubType::Page) {
             ssr_module = wrap_edge_page(
                 ssr_module_context,
-                project_root,
+                project_root.clone(),
                 ssr_module,
                 definition_page.clone(),
                 definition_pathname.clone(),
@@ -170,7 +170,7 @@ pub async fn create_page_ssr_entry_module(
         } else {
             ssr_module = wrap_edge_entry(
                 ssr_module_context,
-                project_root,
+                project_root.clone(),
                 ssr_module,
                 definition_pathname.clone(),
             );
