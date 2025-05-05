@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
                 ResolveOptionsContext {
                     enable_typescript: true,
                     enable_react: true,
-                    enable_node_modules: Some(fs.root().to_resolved().await?),
+                    enable_node_modules: Some((*fs.root().await?).clone()),
                     custom_conditions: vec!["development".into()],
                     ..Default::default()
                 }
@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
                     Value::new(turbopack_core::reference_type::ReferenceType::Undefined),
                 )
                 .module();
-            let rebased = RebasedAsset::new(module, input, output);
+            let rebased = RebasedAsset::new(module, input, output.clone());
             emit_with_completion(Vc::upcast(rebased), output).await?;
 
             anyhow::Ok::<Vc<()>>(Default::default())
