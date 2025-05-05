@@ -1269,7 +1269,7 @@ impl Project {
     async fn edge_middleware_context(self: Vc<Self>) -> Result<Vc<Box<dyn AssetContext>>> {
         let mut transitions = vec![];
 
-        let app_dir = *find_app_dir((*self.project_path().await?).clone()).await?;
+        let app_dir = (*find_app_dir((*self.project_path().await?).clone()).await?).clone();
         let app_project = *self.app_project().await?;
 
         let ecmascript_client_reference_transition_name = match app_project {
@@ -1295,10 +1295,10 @@ impl Project {
             .cell(),
             self.edge_compile_time_info(),
             get_server_module_options_context(
-                self.project_path(),
+                (*self.project_path().await?).clone(),
                 self.execution_context(),
                 Value::new(ServerContextType::Middleware {
-                    app_dir,
+                    app_dir: app_dir.clone(),
                     ecmascript_client_reference_transition_name,
                 }),
                 self.next_mode(),
@@ -1307,9 +1307,9 @@ impl Project {
                 self.encryption_key(),
             ),
             get_edge_resolve_options_context(
-                self.project_path(),
+                (*self.project_path().await?).clone(),
                 Value::new(ServerContextType::Middleware {
-                    app_dir,
+                    app_dir: app_dir.clone(),
                     ecmascript_client_reference_transition_name,
                 }),
                 self.next_mode(),
@@ -1324,7 +1324,7 @@ impl Project {
     async fn node_middleware_context(self: Vc<Self>) -> Result<Vc<Box<dyn AssetContext>>> {
         let mut transitions = vec![];
 
-        let app_dir = *find_app_dir(self.project_path()).await?;
+        let app_dir = (*find_app_dir((*self.project_path().await?).clone()).await?).clone();
         let app_project = *self.app_project().await?;
 
         let ecmascript_client_reference_transition_name = match app_project {
@@ -1350,10 +1350,10 @@ impl Project {
             .cell(),
             self.server_compile_time_info(),
             get_server_module_options_context(
-                self.project_path(),
+                (*self.project_path().await?).clone(),
                 self.execution_context(),
                 Value::new(ServerContextType::Middleware {
-                    app_dir,
+                    app_dir: app_dir.clone(),
                     ecmascript_client_reference_transition_name,
                 }),
                 self.next_mode(),
@@ -1362,9 +1362,9 @@ impl Project {
                 self.encryption_key(),
             ),
             get_server_resolve_options_context(
-                self.project_path(),
+                (*self.project_path().await?).clone(),
                 Value::new(ServerContextType::Middleware {
-                    app_dir,
+                    app_dir: app_dir.clone(),
                     ecmascript_client_reference_transition_name,
                 }),
                 self.next_mode(),
