@@ -226,13 +226,13 @@ pub async fn get_renderer_pool_operation(
     let Some(cwd) = to_sys_path(cwd.clone()).await? else {
         bail!(
             "can only render from a disk filesystem, but `cwd = {}`",
-            cwd.to_string()
+            cwd.value_to_string().await?
         );
     };
     let Some(entrypoint) = to_sys_path(entrypoint.clone()).await? else {
         bail!(
             "can only render from a disk filesystem, but `entrypoint = {}`",
-            entrypoint.to_string()
+            entrypoint.value_to_string().await?
         );
     };
     // Invalidate pool when code content changes
