@@ -12,8 +12,8 @@ use serde::Deserialize;
 use serde_json::json;
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
-    apply_effects, ReadConsistency, ReadRef, ResolvedVc, TryJoinIterExt, TurboTasks, Value,
-    ValueToString, Vc,
+    apply_effects, ReadConsistency, ResolvedVc, TryJoinIterExt, TurboTasks, Value, ValueToString,
+    Vc,
 };
 use turbo_tasks_backend::{noop_backing_storage, BackendOptions, TurboTasksBackend};
 use turbo_tasks_env::DotenvProcessEnv;
