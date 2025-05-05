@@ -45,7 +45,7 @@ impl AfterResolvePlugin for UnsupportedSassResolvePlugin {
         _reference_type: Value<ReferenceType>,
         request: ResolvedVc<Request>,
     ) -> Result<Vc<ResolveResultOption>> {
-        let extension = fs_path.extension().await?;
+        let extension = fs_path.extension();
         if ["sass", "scss"].iter().any(|ext| *ext == &**extension) {
             UnsupportedSassModuleIssue {
                 file_path: lookup_path,
