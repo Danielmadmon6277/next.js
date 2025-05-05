@@ -716,8 +716,8 @@ pub fn get_entrypoints(
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Vc<Entrypoints> {
     directory_tree_to_entrypoints(
-        app_dir,
-        get_directory_tree(app_dir, page_extensions),
+        app_dir.clone(),
+        get_directory_tree(app_dir.clone(), page_extensions),
         get_global_metadata(app_dir, page_extensions),
         Default::default(),
     )
@@ -801,7 +801,7 @@ async fn check_duplicate(
         if let Some(prev) = duplicate.insert(AppPath::from(page_path.clone()), page_path.clone()) {
             if prev != page_path {
                 DuplicateParallelRouteIssue {
-                    app_dir: app_dir.to_resolved().await?,
+                    app_dir,
                     page: loader_tree.page.clone(),
                 }
                 .resolved_cell()
@@ -872,26 +872,23 @@ async fn directory_tree_to_loader_tree_internal(
     if is_root_directory || is_root_layout {
         if modules.not_found.is_none() {
             modules.not_found = Some(
-                get_next_package(app_dir)
-                    .join("dist/client/components/not-found-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .await?
+                    .join("dist/client/components/not-found-error.js".into())?,
             );
         }
         if modules.forbidden.is_none() {
             modules.forbidden = Some(
-                get_next_package(app_dir)
-                    .join("dist/client/components/forbidden-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .await?
+                    .join("dist/client/components/forbidden-error.js".into())?,
             );
         }
         if modules.unauthorized.is_none() {
             modules.unauthorized = Some(
-                get_next_package(app_dir)
-                    .join("dist/client/components/unauthorized-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .await?
+                    .join("dist/client/components/unauthorized-error.js".into())?,
             );
         }
     }
@@ -950,7 +947,7 @@ async fn directory_tree_to_loader_tree_internal(
         }
 
         let subtree = Box::pin(directory_tree_to_loader_tree_internal(
-            app_dir,
+            app_dir.clone(),
             global_metadata,
             subdir_name.clone(),
             subdirectory,
@@ -975,7 +972,7 @@ async fn directory_tree_to_loader_tree_internal(
             }
 
             if subtree.has_page() {
-                check_duplicate(&mut duplicate, &subtree, app_dir).await?;
+                check_duplicate(&mut duplicate, &subtree, app_dir.clone()).await?;
             }
 
             if let Some(current_tree) = tree.parallel_routes.get("children") {
@@ -1019,7 +1016,7 @@ async fn directory_tree_to_loader_tree_internal(
             let default = if key == "children" {
                 modules.default
             } else if let Some(subdirectory) = directory_tree.subdirectories.get(&subdir_name) {
-                subdirectory.modules.default
+                subdirectory.modules.default.clone()
             } else {
                 None
             };
@@ -1027,7 +1024,7 @@ async fn directory_tree_to_loader_tree_internal(
             tree.parallel_routes.insert(
                 key,
                 default_route_tree(
-                    app_dir,
+                    app_dir.clone(),
                     global_metadata,
                     app_page.clone(),
                     default.map(|v| v),
@@ -1053,10 +1050,10 @@ async fn directory_tree_to_loader_tree_internal(
         tree.parallel_routes.insert(
             "children".into(),
             default_route_tree(
-                app_dir,
+                app_dir.clone(),
                 global_metadata,
                 app_page,
-                modules.default.map(|v| *v),
+                modules.default.clone(),
             )
             .await?,
         );
