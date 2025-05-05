@@ -62,7 +62,7 @@ pub async fn maybe_add_babel_loader(
 
             if !has_babel_loader {
                 if !has_emitted_babel_resolve_issue
-                    && !*is_babel_loader_available(project_root).await?
+                    && !*is_babel_loader_available(project_root.clone()).await?
                 {
                     BabelIssue {
                         path: project_root.clone(),
@@ -146,7 +146,7 @@ impl Issue for BabelIssue {
 
     #[turbo_tasks::function]
     fn file_path(&self) -> Vc<FileSystemPath> {
-        *self.path
+        self.path.clone().cell()
     }
 
     #[turbo_tasks::function]
