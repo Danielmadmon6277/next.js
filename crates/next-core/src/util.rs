@@ -62,8 +62,8 @@ pub async fn pathname_for_path(
     } else {
         bail!(
             "server_path ({}) is not in server_root ({})",
-            server_path.to_string(),
-            server_root.to_string()
+            server_path.value_to_string().await?,
+            server_root.value_to_string().await?
         )
     };
     let path = match (path_ty, path) {
@@ -952,7 +952,10 @@ pub async fn load_next_js_templateon<T: DeserializeOwned>(
     let content = &*file_path.read().await?;
 
     let FileContent::Content(file) = content else {
-        bail!("Expected file content at {}", file_path.to_string());
+        bail!(
+            "Expected file content at {}",
+            file_path.value_to_string().await?
+        );
     };
 
     let result: T = parse_json_rope_with_source_context(file.content())?;
