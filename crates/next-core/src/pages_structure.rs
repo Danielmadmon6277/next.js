@@ -199,7 +199,7 @@ async fn get_pages_structure_for_root_directory(
                             api_directory = Some(
                                 get_pages_structure_for_directory(
                                     dir_project_path.clone(),
-                                    next_router_path.join(name.clone()),
+                                    next_router_path.join(name.clone())?,
                                     1,
                                     page_extensions,
                                 )
@@ -231,7 +231,7 @@ async fn get_pages_structure_for_root_directory(
         Some(
             PagesDirectoryStructure {
                 project_path: *project_path,
-                next_router_path: next_router_path.to_resolved().await?,
+                next_router_path: next_router_path.clone(),
                 items: items
                     .into_iter()
                     .map(|(_, v)| async move { v.to_resolved().await })
@@ -250,15 +250,15 @@ async fn get_pages_structure_for_root_directory(
     };
 
     let pages_path = if let Some(project_path) = *project_path {
-        *project_path
+        project_path.clone()
     } else {
-        project_root.join("pages".into())
+        project_root.join("pages".into())?
     };
 
     let app_item = {
-        let app_router_path = next_router_path.join("_app".into());
+        let app_router_path = next_router_path.join("_app".into())?;
         PagesStructureItem::new(
-            pages_path.join("_app".into()),
+            pages_path.join("_app".into())?,
             page_extensions,
             Some(
                 get_next_package(project_root)
@@ -271,7 +271,7 @@ async fn get_pages_structure_for_root_directory(
     };
 
     let document_item = {
-        let document_router_path = next_router_path.join("_document".into());
+        let document_router_path = next_router_path.join("_document".into())?;
         PagesStructureItem::new(
             pages_path.join("_document".into()),
             page_extensions,
@@ -286,7 +286,7 @@ async fn get_pages_structure_for_root_directory(
     };
 
     let error_item = {
-        let error_router_path = next_router_path.join("_error".into());
+        let error_router_path = next_router_path.join("_error".into())?;
         PagesStructureItem::new(
             pages_path.join("_error".into()),
             page_extensions,
