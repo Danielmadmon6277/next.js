@@ -84,7 +84,7 @@ pub async fn get_app_page_entry(
     // Load the file from the next.js codebase.
     let source = load_next_js_template(
         "app-page.js",
-        project_root,
+        project_root.clone(),
         fxindexmap! {
             "VAR_DEFINITION_PAGE" => page.to_string().into(),
             "VAR_DEFINITION_PATHNAME" => pathname.clone(),
