@@ -299,7 +299,7 @@ pub async fn get_next_server_import_map(
 
     insert_next_shared_aliases(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         execution_context,
         next_config,
         false,
@@ -616,7 +616,7 @@ async fn insert_next_server_special_aliases(
         ServerContextType::AppSSR { app_dir }
         | ServerContextType::AppRSC { app_dir, .. }
         | ServerContextType::AppRoute { app_dir, .. } => {
-            let next_package = (*get_next_package(*app_dir).await?).clone();
+            let next_package = (*get_next_package(app_dir.clone()).await?).clone();
             import_map.insert_exact_alias(
                 "styled-jsx",
                 request_to_import_mapping(next_package.clone(), "styled-jsx"),
