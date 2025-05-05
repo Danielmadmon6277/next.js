@@ -127,13 +127,13 @@ pub async fn create_web_entry_source(
 
     let runtime_entries = entries.resolve_entries(asset_context);
 
-    let origin = PlainResolveOrigin::new(asset_context, root_path.join("_".into()));
+    let origin = PlainResolveOrigin::new(asset_context, root_path.join("_".into())?);
     let entries = entry_requests
         .into_iter()
         .map(|request| async move {
             let ty = Value::new(ReferenceType::Entry(EntryReferenceSubType::Web));
             Ok(origin
-                .resolve_asset(request, origin.resolve_options(ty.clone()), ty)
+                .resolve_asset(request, origin.resolve_options(ty.clone()).await?, ty)
                 .await?
                 .resolve()
                 .await?
