@@ -503,13 +503,13 @@ async fn maybe_load_env(
     _context: Vc<Box<dyn AssetContext>>,
     path: FileSystemPath,
 ) -> Result<Option<Vc<Box<dyn Source>>>> {
-    let dotenv_path = path.join("input/.env".into());
+    let dotenv_path = path.join("input/.env".into())?;
 
     if !dotenv_path.read().await?.is_content() {
         return Ok(None);
     }
 
-    let env = DotenvProcessEnv::new(None, dotenv_path);
+    let env = DotenvProcessEnv::new(None, dotenv_path.clone());
     let asset = ProcessEnvAsset::new(dotenv_path, Vc::upcast(env));
     Ok(Some(Vc::upcast(asset)))
 }
