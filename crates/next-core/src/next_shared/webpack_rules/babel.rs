@@ -32,7 +32,7 @@ pub async fn maybe_add_babel_loader(
     let has_babel_config = {
         let mut has_babel_config = false;
         for &filename in BABEL_CONFIG_FILES {
-            let filetype = *project_root.join(filename.into()).get_type().await?;
+            let filetype = *project_root.join(filename.into())?.get_type().await?;
             if matches!(filetype, FileSystemEntryType::File) {
                 has_babel_config = true;
                 break;
@@ -65,7 +65,7 @@ pub async fn maybe_add_babel_loader(
                     && !*is_babel_loader_available(project_root).await?
                 {
                     BabelIssue {
-                        path: project_root.to_resolved().await?,
+                        path: project_root.clone(),
                         title: StyledString::Text(
                             "Unable to resolve babel-loader, but a babel config is present".into(),
                         )
@@ -113,12 +113,12 @@ pub async fn maybe_add_babel_loader(
 #[turbo_tasks::function]
 pub async fn is_babel_loader_available(project_path: FileSystemPath) -> Result<Vc<bool>> {
     let result = resolve(
-        project_path,
+        project_path.clone(),
         Value::new(ReferenceType::CommonJs(CommonJsReferenceSubType::Undefined)),
         Request::parse(Value::new(Pattern::Constant(
             "babel-loader/package.json".into(),
         ))),
-        node_cjs_resolve_options(project_path),
+        node_cjs_resolve_options(project_path.clone()),
     );
     let assets = result.primary_sources().await?;
     Ok(Vc::cell(!assets.is_empty()))
