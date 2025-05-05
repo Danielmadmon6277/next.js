@@ -1,5 +1,5 @@
 use anyhow::Result;
-use turbo_tasks::{ResolvedVc, Vc};
+use turbo_tasks::Vc;
 use turbo_tasks_fs::FileSystemPath;
 use turbopack::module_options::ModuleRule;
 use turbopack_ecmascript_plugins::transform::relay::RelayTransformer;
