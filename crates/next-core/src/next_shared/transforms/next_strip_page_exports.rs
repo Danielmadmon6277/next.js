@@ -4,7 +4,7 @@ use next_custom_transforms::transforms::strip_page_exports::{
     next_transform_strip_page_exports, ExportFilter,
 };
 use swc_core::ecma::ast::Program;
-use turbo_tasks::{ResolvedVc, Vc};
+use turbo_tasks::ResolvedVc;
 use turbo_tasks_fs::FileSystemPath;
 use turbopack::module_options::{ModuleRule, ModuleRuleEffect, RuleCondition};
 use turbopack_ecmascript::{CustomTransformer, EcmascriptInputTransform, TransformContext};
