@@ -62,7 +62,7 @@ pub async fn get_app_metadata_route_entry(
     // dynamic|static metadata route handler.
     let original_path = metadata.into_path();
 
-    let source = Vc::upcast(FileSource::new(*original_path));
+    let source = Vc::upcast(FileSource::new(original_path));
     let segment_config = parse_segment_config_from_source(source);
     let is_dynamic_metadata = matches!(metadata, MetadataItem::Dynamic { .. });
     let is_multi_dynamic: bool = if Some(segment_config).is_some() {
@@ -128,7 +128,7 @@ async fn get_base64_file_content(path: FileSystemPath) -> Result<String> {
 
 #[turbo_tasks::function]
 async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<Box<dyn Source>>> {
-    let stem = path.file_stem().await?;
+    let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
 
     let content_type = get_content_type(path).await?;
