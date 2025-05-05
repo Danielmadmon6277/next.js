@@ -52,7 +52,7 @@ pub(super) async fn get_font_fallback(
         Some(fallback) => FontFallback::Manual(fallback.clone()).cell(),
         None => {
             let metrics_json = load_next_js_templateon(
-                lookup_path,
+                lookup_path.clone(),
                 "dist/server/capsize-font-metrics.json".into(),
             )
             .await?;
@@ -76,7 +76,7 @@ pub(super) async fn get_font_fallback(
                 .cell(),
                 Err(_) => {
                     NextFontIssue {
-                        path: lookup_path,
+                        path: lookup_path.clone(),
                         title: StyledString::Text(
                             format!(
                                 "Failed to find font override values for font `{}`",
