@@ -38,11 +38,11 @@ pub async fn get_app_metadata_route_source(
             let stem = stem.as_deref().unwrap_or_default();
 
             if stem == "robots" || stem == "manifest" {
-                dynamic_text_route_source(*path)
+                dynamic_text_route_source(path.clone())
             } else if stem == "sitemap" {
-                dynamic_site_map_route_source(mode, *path, is_multi_dynamic)
+                dynamic_site_map_route_source(mode, path.clone(), is_multi_dynamic)
             } else {
-                dynamic_image_route_source(*path)
+                dynamic_image_route_source(path.clone())
             }
         }
     })
@@ -60,7 +60,7 @@ pub async fn get_app_metadata_route_entry(
 ) -> Vc<AppEntry> {
     // Read original source's segment config before replacing source into
     // dynamic|static metadata route handler.
-    let original_path = metadata.into_path();
+    let original_path = metadata.clone().into_path();
 
     let source = Vc::upcast(FileSource::new(original_path));
     let segment_config = parse_segment_config_from_source(source);
@@ -121,7 +121,7 @@ async fn get_base64_file_content(path: FileSystemPath) -> Result<String> {
             Base64Display::new(&content, &STANDARD).to_string()
         }
         FileContent::NotFound => {
-            bail!("metadata file not found: {}", &path.to_string().await?);
+            bail!("metadata file not found: {}", &path.to_string());
         }
     })
 }
@@ -131,7 +131,7 @@ async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<
     let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
 
-    let content_type = get_content_type(path).await?;
+    let content_type = get_content_type(path.clone()).await?;
 
     let cache_control = if stem == "favicon" {
         CACHE_HEADER_REVALIDATE
@@ -141,7 +141,7 @@ async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<
         CACHE_HEADER_NONE
     };
 
-    let original_file_content_b64 = get_base64_file_content(path).await?;
+    let original_file_content_b64 = get_base64_file_content(path.clone()).await?;
 
     let is_twitter = stem == "twitter-image";
     let is_open_graph = stem == "opengraph-image";
@@ -188,12 +188,14 @@ async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<
         is_open_graph = is_open_graph,
         file_size_limit = file_size_limit,
         img_name = img_name,
-        path = StringifyJs(&path.to_string().await?),
+        path = StringifyJs(&path.to_string()),
     };
 
     let file = File::from(code);
     let source = VirtualSource::new(
-        path.parent().join(format!("{stem}--route-entry.js").into()),
+        path.parent()
+            .join(format!("{stem}--route-entry.js").into())?
+            .cell(),
         AssetContent::file(file.into()),
     );
 
@@ -202,9 +204,9 @@ async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<
 
 #[turbo_tasks::function]
 async fn dynamic_text_route_source(path: FileSystemPath) -> Result<Vc<Box<dyn Source>>> {
-    let stem = path.file_stem().await?;
+    let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
-    let ext = &*path.extension().await?;
+    let ext = &*path.extension();
 
     let content_type = get_content_type(path).await?;
 
@@ -245,7 +247,9 @@ async fn dynamic_text_route_source(path: FileSystemPath) -> Result<Vc<Box<dyn So
 
     let file = File::from(code);
     let source = VirtualSource::new(
-        path.parent().join(format!("{stem}--route-entry.js").into()),
+        path.parent()
+            .join(format!("{stem}--route-entry.js").into())?
+            .cell(),
         AssetContent::file(file.into()),
     );
 
@@ -260,8 +264,8 @@ async fn dynamic_site_map_route_source(
 ) -> Result<Vc<Box<dyn Source>>> {
     let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
-    let ext = &*path.extension().await?;
-    let content_type = get_content_type(path).await?;
+    let ext = &*path.extension();
+    let content_type = get_content_type(path.clone()).await?;
     let mut static_generation_code = "";
 
     if mode.is_production() && is_multi_dynamic {
@@ -347,9 +351,9 @@ async fn dynamic_site_map_route_source(
 
 #[turbo_tasks::function]
 async fn dynamic_image_route_source(path: FileSystemPath) -> Result<Vc<Box<dyn Source>>> {
-    let stem = path.file_stem().await?;
+    let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
-    let ext = &*path.extension().await?;
+    let ext = &*path.extension();
 
     let code = formatdoc! {
         r#"
