@@ -428,7 +428,7 @@ impl ClientReferenceManifest {
                 node_root.join(
                     format!("server/app{normalized_manifest_entry}_client-reference-manifest.js",)
                         .into(),
-                ),
+                )?,
                 AssetContent::file(
                     File::from(formatdoc! {
                         r#"
