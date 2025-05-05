@@ -59,7 +59,7 @@ impl EcmascriptBuildNodeEntryChunk {
 
         let output_root = this.chunking_context.output_root().await?;
         let chunk_path = self.path().await?;
-        let chunk_directory = self.path().parent().await?;
+        let chunk_directory = self.path().await?.parent();
         let runtime_path = self.runtime_chunk().path().await?;
         let runtime_relative_path =
             if let Some(path) = chunk_directory.get_relative_path_to(&runtime_path) {
@@ -152,7 +152,10 @@ impl EcmascriptBuildNodeEntryChunk {
     #[turbo_tasks::function]
     async fn source_map(self: Vc<Self>) -> Result<Vc<SourceMapAsset>> {
         let this = self.await?;
-        Ok(SourceMapAsset::new_fixed(*this.path, Vc::upcast(self)))
+        Ok(SourceMapAsset::new_fixed(
+            this.path.clone(),
+            Vc::upcast(self),
+        ))
     }
 }
 
@@ -177,8 +180,8 @@ fn chunk_reference_description() -> Vc<RcStr> {
 #[turbo_tasks::value_impl]
 impl OutputAsset for EcmascriptBuildNodeEntryChunk {
     #[turbo_tasks::function]
-    fn path(&self) -> FileSystemPath {
-        *self.path
+    fn path(&self) -> Vc<FileSystemPath> {
+        self.path.clone().cell()
     }
 
     #[turbo_tasks::function]
