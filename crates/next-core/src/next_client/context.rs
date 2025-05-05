@@ -156,15 +156,19 @@ pub async fn get_client_resolve_options_context(
     next_config: Vc<NextConfig>,
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<ResolveOptionsContext>> {
-    let next_client_import_map =
-        get_next_client_import_map(project_path.clone(), ty, next_config, execution_context)
-            .to_resolved()
-            .await?;
-    let next_client_fallback_import_map = get_next_client_fallback_import_map(ty)
+    let next_client_import_map = get_next_client_import_map(
+        project_path.clone(),
+        ty.clone(),
+        next_config,
+        execution_context,
+    )
+    .to_resolved()
+    .await?;
+    let next_client_fallback_import_map = get_next_client_fallback_import_map(ty.clone())
         .to_resolved()
         .await?;
     let next_client_resolved_map =
-        get_next_client_resolved_map(project_path.clone(), project_path, *mode.await?)
+        get_next_client_resolved_map(project_path.clone(), project_path.clone(), *mode.await?)
             .to_resolved()
             .await?;
     let custom_conditions = vec![mode.await?.condition().into()];
