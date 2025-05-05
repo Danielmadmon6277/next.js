@@ -33,7 +33,10 @@ async fn hash_file_content(path: FileSystemPath) -> Result<u64> {
             hash_xxh3_hash64(&*content)
         }
         FileContent::NotFound => {
-            bail!("metadata file not found: {}", &path.to_string());
+            bail!(
+                "metadata file not found: {}",
+                &path.value_to_string().await?
+            );
         }
     })
 }
