@@ -9,7 +9,7 @@ use swc_core::{
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
     trace::TraceRawVcs, util::WrapFuture, FxIndexMap, FxIndexSet, NonLocalValue, ResolvedVc,
-    TaskInput, ValueDefault, ValueToString, Vc,
+    TaskInput, ValueDefault, Vc,
 };
 use turbo_tasks_fs::{
     self, json::parse_json_rope_with_source_context, rope::Rope, util::join_path, File,
