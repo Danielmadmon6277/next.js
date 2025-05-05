@@ -414,10 +414,10 @@ fn node_file_trace<B: Backend + 'static>(
                     vec![],
                 ));
                 let input_dir = (*workspace_fs.root().to_resolved().await?.await?).clone();
-                let input = input_dir.join(format!("tests/{input_string}").into());
+                let input = input_dir.join(format!("tests/{input_string}").into())?;
 
                 #[cfg(not(feature = "bench_against_node_nft"))]
-                let original_output = exec_node(package_root, input);
+                let original_output = exec_node(package_root, input.clone());
 
                 let output_fs = DiskFileSystem::new("output".into(), directory.clone(), vec![]);
                 let output_dir = (*output_fs.root().to_resolved().await?.await?).clone();
@@ -447,7 +447,7 @@ fn node_file_trace<B: Backend + 'static>(
                     .cell(),
                     ResolveOptionsContext {
                         enable_node_native_modules: true,
-                        enable_node_modules: Some(input_dir),
+                        enable_node_modules: Some(input_dir.clone()),
                         custom_conditions: vec!["node".into()],
                         ..Default::default()
                     }
