@@ -420,7 +420,7 @@ pub async fn get_server_module_options_context(
     let next_mode = mode.await?;
     let mut next_server_rules = get_next_server_transforms_rules(
         next_config,
-        ty.into_value(),
+        ty.clone().into_value(),
         mode,
         false,
         next_runtime,
@@ -429,7 +429,7 @@ pub async fn get_server_module_options_context(
     .await?;
     let mut foreign_next_server_rules = get_next_server_transforms_rules(
         next_config,
-        ty.into_value(),
+        ty.clone().into_value(),
         mode,
         true,
         next_runtime,
@@ -437,7 +437,7 @@ pub async fn get_server_module_options_context(
     )
     .await?;
     let mut internal_custom_rules = get_next_server_internal_transforms_rules(
-        ty.into_value(),
+        ty.clone().into_value(),
         next_config.mdx_rs().await?.is_some(),
     )
     .await?;
@@ -477,7 +477,7 @@ pub async fn get_server_module_options_context(
     // node_modules that requires webpack loaders, which next-dev implicitly
     // does by default.
     let foreign_enable_webpack_loaders = webpack_loader_options(
-        project_path,
+        project_path.clone(),
         next_config,
         true,
         conditions
@@ -490,7 +490,7 @@ pub async fn get_server_module_options_context(
 
     // Now creates a webpack rules that applies to all codes.
     let enable_webpack_loaders =
-        webpack_loader_options(project_path, next_config, false, conditions).await?;
+        webpack_loader_options(project_path.clone(), next_config, false, conditions).await?;
 
     let tree_shaking_mode_for_user_code = *next_config
         .tree_shaking_mode_for_user_code(next_mode.is_development())
@@ -1003,9 +1003,9 @@ pub async fn get_server_chunking_context_with_client_assets(
     // support both production and development modes.
     let mut builder = NodeJsChunkingContext::builder(
         root_path,
-        node_root,
+        node_root.clone(),
         node_root_to_root_path,
-        client_root,
+        client_root.clone(),
         node_root.join("server/chunks/ssr".into())?,
         client_root.join("static/media".into())?,
         environment,
