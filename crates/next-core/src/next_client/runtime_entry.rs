@@ -25,7 +25,7 @@ impl RuntimeEntry {
         asset_context: Vc<Box<dyn AssetContext>>,
     ) -> Result<Vc<EvaluatableAssets>> {
         let (request, path) = match &*self.await? {
-            RuntimeEntry::Evaluatable(e) => return Ok(EvaluatableAssets::one(*e)),
+            RuntimeEntry::Evaluatable(e) => return Ok(EvaluatableAssets::one(**e)),
             RuntimeEntry::Source(source) => {
                 return Ok(EvaluatableAssets::one(source.to_evaluatable(asset_context)));
             }
