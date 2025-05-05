@@ -49,7 +49,7 @@ pub async fn dynamic_image_metadata_source(
     let stem = stem.as_deref().unwrap_or_default();
     let ext = &*path.extension().await?;
 
-    let hash_query = format!("?{:x}", hash_file_content(path).await?);
+    let hash_query = format!("?{:x}", hash_file_content(path.clone()).await?);
 
     let use_numeric_sizes = ty == "twitter" || ty == "openGraph";
     let sizes = if use_numeric_sizes {
@@ -71,7 +71,7 @@ pub async fn dynamic_image_metadata_source(
         format!("data.sizes = `{sizes}`;")
     };
 
-    let source = Vc::upcast(FileSource::new(path));
+    let source = Vc::upcast(FileSource::new(path.clone()));
     let module = asset_context
         .process(
             source,
