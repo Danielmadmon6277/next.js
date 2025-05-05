@@ -8,7 +8,7 @@ use tracing::Instrument;
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
     debug::ValueDebugFormat, fxindexmap, trace::TraceRawVcs, FxIndexMap, NonLocalValue, ResolvedVc,
-    TaskInput, TryJoinIterExt, ValueDefault, ValueToString, Vc,
+    TaskInput, TryJoinIterExt, ValueDefault, Vc,
 };
 use turbo_tasks_fs::{DirectoryContent, DirectoryEntry, FileSystemEntryType, FileSystemPath};
 use turbopack_core::issue::{
@@ -1023,26 +1023,15 @@ async fn directory_tree_to_loader_tree_internal(
 
             tree.parallel_routes.insert(
                 key,
-                default_route_tree(
-                    app_dir.clone(),
-                    global_metadata,
-                    app_page.clone(),
-                    default.map(|v| v),
-                )
-                .await?,
+                default_route_tree(app_dir.clone(), global_metadata, app_page.clone(), default)
+                    .await?,
             );
         }
     }
 
     if tree.parallel_routes.is_empty() {
         if modules.default.is_some() || current_level_is_parallel_route {
-            tree = default_route_tree(
-                app_dir,
-                global_metadata,
-                app_page,
-                modules.default.map(|v| v),
-            )
-            .await?;
+            tree = default_route_tree(app_dir, global_metadata, app_page, modules.default).await?;
         } else {
             return Ok(None);
         }
@@ -1425,7 +1414,7 @@ pub async fn get_global_metadata(
     let mut metadata = GlobalMetadata::default();
 
     for (basename, entry) in entries {
-        let DirectoryEntry::File(file) = &*entry else {
+        let DirectoryEntry::File(file) = entry else {
             continue;
         };
 
