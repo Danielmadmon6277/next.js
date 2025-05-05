@@ -369,8 +369,9 @@ impl ImportMappingReplacement for NextFontGoogleFontFileReplacer {
         }
 
         let font_virtual_path = next_js_file_path("internal/font/google".into())
-            .join(format!("/{}.{}", name, ext).into())
-            .truncate_file_name_with_hash_vc();
+            .await?
+            .join(format!("/{}.{}", name, ext).into())?
+            .truncate_file_name_with_hash_vc()?;
 
         // doesn't seem ideal to download the font into a string, but probably doesn't
         // really matter either.
@@ -380,7 +381,7 @@ impl ImportMappingReplacement for NextFontGoogleFontFileReplacer {
         };
 
         let font_source = VirtualSource::new(
-            font_virtual_path,
+            font_virtual_path.cell(),
             AssetContent::file(FileContent::Content(font.await?.0.as_slice().into()).cell()),
         )
         .to_resolved()
