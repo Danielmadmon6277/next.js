@@ -51,13 +51,12 @@ pub async fn emit_assets(
         .iter()
         .copied()
         .map(|asset| async move {
-            let path = asset.path();
+            let path = asset.path().await?;
             let span = tracing::info_span!("emit asset", name = %path.to_string().await?);
             async move {
-                let path = path.await?;
-                Ok(if path.is_inside_ref(&*node_root.await?) {
+                Ok(if path.is_inside_ref(&node_root?) {
                     Some(emit(*asset))
-                } else if path.is_inside_ref(&*client_relative_path.await?) {
+                } else if path.is_inside_ref(&client_relative_path) {
                     // Client assets are emitted to the client output path, which is prefixed
                     // with _next. We need to rebase them to remove that
                     // prefix.
