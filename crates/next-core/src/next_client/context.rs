@@ -140,7 +140,7 @@ pub async fn get_client_compile_time_info(
 }
 
 #[turbo_tasks::value(shared, serialization = "auto_for_input")]
-#[derive(Debug, Copy, Clone, Hash)]
+#[derive(Debug, Clone, Hash)]
 pub enum ClientContextType {
     Pages { pages_dir: FileSystemPath },
     App { app_dir: FileSystemPath },
@@ -487,8 +487,8 @@ pub async fn get_client_chunking_context(
 }
 
 #[turbo_tasks::function]
-pub fn get_client_assets_path(client_root: FileSystemPath) -> FileSystemPath {
-    client_root.join("static/media".into())
+pub fn get_client_assets_path(client_root: FileSystemPath) -> Result<Vc<FileSystemPath>> {
+    Ok(client_root.join("static/media".into())?.cell())
 }
 
 #[turbo_tasks::function]
