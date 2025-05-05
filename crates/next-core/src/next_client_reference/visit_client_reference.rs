@@ -156,7 +156,7 @@ pub async fn find_server_entries(
     include_traced: bool,
 ) -> Result<Vc<ServerEntries>> {
     async move {
-        let entry_path = entry.ident().path().to_resolved().await?;
+        let entry_path = (*entry.ident().path().await?).clone();
         let graph = AdjacencyMap::new()
             .skip_duplicates()
             .visit(
