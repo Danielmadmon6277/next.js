@@ -143,7 +143,7 @@ async fn wrap_edge_route(
 
     let source = load_next_js_template(
         "edge-app-route.js",
-        project_root,
+        project_root.clone(),
         fxindexmap! {
             "VAR_USERLAND" => INNER.into(),
             "VAR_PAGE" => page.to_string().into(),
@@ -168,7 +168,7 @@ async fn wrap_edge_route(
 
     Ok(wrap_edge_entry(
         asset_context,
-        project_root,
+        project_root.clone(),
         wrapped,
         AppPath::from(page).to_string().into(),
     ))
