@@ -183,12 +183,12 @@ pub async fn get_client_resolve_options_context(
                     .await?,
             ),
             ResolvedVc::upcast(
-                ModuleFeatureReportResolvePlugin::new(*project_path)
+                ModuleFeatureReportResolvePlugin::new(project_path.clone())
                     .to_resolved()
                     .await?,
             ),
             ResolvedVc::upcast(
-                NextFontLocalResolvePlugin::new(*project_path)
+                NextFontLocalResolvePlugin::new(project_path.clone())
                     .to_resolved()
                     .await?,
             ),
@@ -500,12 +500,17 @@ pub async fn get_client_runtime_entries(
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<RuntimeEntries>> {
     let mut runtime_entries = vec![];
-    let resolve_options_context =
-        get_client_resolve_options_context(project_root, ty, mode, next_config, execution_context);
+    let resolve_options_context = get_client_resolve_options_context(
+        project_root.clone(),
+        ty,
+        mode,
+        next_config,
+        execution_context,
+    );
 
     if mode.await?.is_development() {
         let enable_react_refresh =
-            assert_can_resolve_react_refresh(project_root, resolve_options_context)
+            assert_can_resolve_react_refresh(project_root.clone(), resolve_options_context)
                 .await?
                 .as_request();
 
