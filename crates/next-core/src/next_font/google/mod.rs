@@ -222,7 +222,7 @@ impl NextFontGoogleCssModuleReplacer {
         let stylesheet_str = mocked_responses_path
             .as_ref()
             .map_or_else(
-                || fetch_real_stylesheet(stylesheet_url, css_virtual_path).boxed(),
+                || fetch_real_stylesheet(stylesheet_url, css_virtual_path.clone()).boxed(),
                 |p| get_mock_stylesheet(stylesheet_url, p, *self.execution_context).boxed(),
             )
             .await?;
