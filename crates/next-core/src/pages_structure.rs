@@ -163,7 +163,7 @@ async fn get_pages_structure_for_root_directory(
                             "500" => {
                                 let item_next_router_path =
                                     next_router_path_for_basename(next_router_path, basename);
-                                let item_original_path = next_router_path.join(basename.into());
+                                let item_original_path = next_router_path.join(basename.into())?;
                                 let item = PagesStructureItem::new(
                                     base_path,
                                     page_extensions,
@@ -180,7 +180,7 @@ async fn get_pages_structure_for_root_directory(
                             basename => {
                                 let item_next_router_path =
                                     next_router_path_for_basename(next_router_path, basename);
-                                let item_original_path = next_router_path.join(basename.into());
+                                let item_original_path = next_router_path.join(basename.into())?;
                                 items.push((
                                     basename,
                                     PagesStructureItem::new(
@@ -198,7 +198,7 @@ async fn get_pages_structure_for_root_directory(
                         "api" => {
                             api_directory = Some(
                                 get_pages_structure_for_directory(
-                                    *dir_project_path,
+                                    dir_project_path.clone(),
                                     next_router_path.join(name.clone()),
                                     1,
                                     page_extensions,
@@ -211,8 +211,8 @@ async fn get_pages_structure_for_root_directory(
                             children.push((
                                 name,
                                 get_pages_structure_for_directory(
-                                    *dir_project_path,
-                                    next_router_path.join(name.clone()),
+                                    dir_project_path.clone(),
+                                    next_router_path.join(name.clone())?,
                                     1,
                                     page_extensions,
                                 ),
