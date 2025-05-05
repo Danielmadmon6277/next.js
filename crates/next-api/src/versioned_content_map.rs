@@ -129,10 +129,10 @@ impl VersionedContentMap {
             let mut changed = false;
 
             // get current map's keys, subtract keys that don't exist in operation
-            let mut stale_assets = map.0.keys().copied().collect::<FxHashSet<_>>();
+            let mut stale_assets = map.0.keys().cloned().collect::<FxHashSet<_>>();
 
             for (k, _) in entries.iter().flatten() {
-                let res = map.0.entry(*k).or_default().insert(assets_operation);
+                let res = map.0.entry(k.clone()).or_default().insert(assets_operation);
                 stale_assets.remove(k);
                 changed = changed || res;
             }
@@ -161,7 +161,7 @@ impl VersionedContentMap {
         .await?;
         let map_entry = Vc::cell(Some(MapEntry {
             assets_operation,
-            path_to_asset: entries.iter().flatten().copied().collect(),
+            path_to_asset: entries.iter().flatten().cloned().collect(),
         }));
         Ok(map_entry)
     }
@@ -263,7 +263,7 @@ async fn get_entries(assets: OperationVc<OutputAssets>) -> Result<Vc<GetEntriesR
     let entries = assets_ref
         .iter()
         .map(|&asset| async move {
-            let path = asset.path().to_resolved().await?;
+            let path = (*asset.path().await?).clone();
             Ok((path, asset))
         })
         .try_join()
