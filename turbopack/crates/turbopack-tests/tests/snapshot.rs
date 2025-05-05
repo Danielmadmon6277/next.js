@@ -196,7 +196,7 @@ async fn run_inner_operation(resource: RcStr) -> Result<()> {
 }
 
 #[turbo_tasks::function(operation)]
-async fn run_test_operation(resource: RcStr) -> Result<FileSystemPath> {
+async fn run_test_operation(resource: RcStr) -> Result<Vc<FileSystemPath>> {
     let test_path = canonicalize(&resource)?;
     assert!(test_path.exists(), "{} does not exist", resource);
     assert!(
@@ -211,7 +211,7 @@ async fn run_test_operation(resource: RcStr) -> Result<FileSystemPath> {
         Ok(options_str) => parse_json_with_source_context(&options_str).unwrap(),
     };
     let project_fs = DiskFileSystem::new("project".into(), REPO_ROOT.clone(), vec![]);
-    let project_root = project_fs.root().to_resolved().await?;
+    let project_root = project_fs.root().await?;
 
     let relative_path = test_path.strip_prefix(&*REPO_ROOT)?;
     let relative_path: RcStr = sys_to_unix(relative_path.to_str().unwrap()).into();
@@ -375,10 +375,10 @@ async fn run_test_operation(resource: RcStr) -> Result<FileSystemPath> {
         ),
     };
 
-    let expected_paths = expected(*chunk_root_path)
+    let expected_paths = expected(chunk_root_path.clone())
         .await?
-        .union(&expected(*static_root_path).await?)
-        .copied()
+        .union(&expected(static_root_path.clone()).await?)
+        .cloned()
         .collect();
 
     let entry_module = asset_context
