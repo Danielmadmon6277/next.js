@@ -1881,8 +1881,8 @@ async fn create_app_paths_manifest(
     filename: RcStr,
 ) -> Result<ResolvedVc<Box<dyn OutputAsset>>> {
     let manifest_path_prefix = original_name;
-    let path =
-        node_root.join(format!("server/app{manifest_path_prefix}/app-paths-manifest.json",).into());
+    let path = node_root
+        .join(format!("server/app{manifest_path_prefix}/app-paths-manifest.json",).into())?;
     let app_paths_manifest = AppPathsManifest {
         node_server_app_paths: PagesManifest {
             pages: [(original_name.into(), filename)].into_iter().collect(),
@@ -1941,10 +1941,11 @@ impl Endpoint for AppEndpoint {
                 .await?
                 .is_development()
             {
-                let node_root = this.app_project.project().node_root();
+                let node_root = (*this.app_project.project().node_root().await?).clone();
                 let server_paths = all_server_paths(output_assets, node_root).owned().await?;
 
-                let client_relative_root = this.app_project.project().client_relative_path();
+                let client_relative_root =
+                    (*this.app_project.project().client_relative_path().await?).clone();
                 let client_paths = all_paths_in_root(output_assets, client_relative_root)
                     .owned()
                     .instrument(tracing::info_span!("client_paths"))
@@ -2042,7 +2043,7 @@ impl Endpoint for AppEndpoint {
 
         let server_actions_loader = ResolvedVc::upcast(
             build_server_actions_loader(
-                this.app_project.project().project_path(),
+                (*this.app_project.project().project_path().await?).clone(),
                 app_entry.original_name.clone(),
                 actions,
                 match runtime {
