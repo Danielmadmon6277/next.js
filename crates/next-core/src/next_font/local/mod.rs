@@ -330,8 +330,8 @@ impl Issue for FontResolvingIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.origin_path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.origin_path.clone().cell()
     }
 
     #[turbo_tasks::function]
