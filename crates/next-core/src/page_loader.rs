@@ -133,7 +133,7 @@ fn page_loader_chunk_reference_description() -> Vc<RcStr> {
 #[turbo_tasks::value_impl]
 impl OutputAsset for PageLoaderAsset {
     #[turbo_tasks::function]
-    async fn path(&self) -> Result<FileSystemPath> {
+    async fn path(&self) -> Result<Vc<FileSystemPath>> {
         let root = self
             .rebase_prefix_path
             .await?
