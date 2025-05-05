@@ -500,10 +500,10 @@ pub async fn get_server_module_options_context(
     let versions = RuntimeVersions(Default::default()).cell();
 
     // ModuleOptionsContext related options
-    let tsconfig = get_typescript_transform_options(*project_path)
+    let tsconfig = get_typescript_transform_options(project_path.clone())
         .to_resolved()
         .await?;
-    let decorators_options = get_decorators_transform_options(*project_path);
+    let decorators_options = get_decorators_transform_options(project_path.clone());
     let enable_mdx_rs = *next_config.mdx_rs().await?;
 
     // Get the jsx transform options for the `client` side.
@@ -514,18 +514,18 @@ pub async fn get_server_module_options_context(
     // This enables correct emotion transform and other hydration between server and
     // client bundles. ref: https://github.com/vercel/next.js/blob/4bbf9b6c70d2aa4237defe2bebfa790cdb7e334e/packages/next/src/build/webpack-config.ts#L1421-L1426
     let jsx_runtime_options =
-        get_jsx_transform_options(*project_path, mode, None, false, next_config)
+        get_jsx_transform_options(project_path.clone(), mode, None, false, next_config)
             .to_resolved()
             .await?;
     let rsc_jsx_runtime_options =
-        get_jsx_transform_options(*project_path, mode, None, true, next_config)
+        get_jsx_transform_options(project_path.clone(), mode, None, true, next_config)
             .to_resolved()
             .await?;
 
     // A set of custom ecma transform rules being applied to server context.
     let source_transform_rules: Vec<ModuleRule> = vec![
-        get_swc_ecma_transform_plugin_rule(next_config, project_path).await?,
-        get_relay_transform_rule(next_config, project_path).await?,
+        get_swc_ecma_transform_plugin_rule(next_config, project_path.clone()).await?,
+        get_relay_transform_rule(next_config, project_path.clone()).await?,
         get_emotion_transform_rule(next_config).await?,
         get_react_remove_properties_transform_rule(next_config).await?,
         get_remove_console_transform_rule(next_config).await?,
