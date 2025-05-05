@@ -1019,6 +1019,10 @@ pub struct FileSystemPath {
 }
 
 impl FileSystemPath {
+    pub async fn uri(&self) -> Result<RcStr> {
+        Ok(format!("[{}]/{}", self.fs.to_string().await?, self.path).into())
+    }
+
     pub fn is_inside_ref(&self, other: &FileSystemPath) -> bool {
         if self.fs == other.fs && self.path.starts_with(&*other.path) {
             if other.path.is_empty() {
