@@ -1576,8 +1576,8 @@ impl Issue for OutdatedConfigIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.path.clone().cell()
     }
 
     #[turbo_tasks::function]
