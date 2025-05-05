@@ -265,7 +265,7 @@ async fn prepare_test(resource: RcStr) -> Result<Vc<PreparedTest>> {
 
     let root_fs = DiskFileSystem::new("workspace".into(), REPO_ROOT.clone(), vec![]);
     let project_fs = DiskFileSystem::new("project".into(), REPO_ROOT.clone(), vec![]);
-    let project_root = project_fs.root().to_resolved().await?;
+    let project_root = project_fs.root().await?;
 
     let relative_path = resource_path.strip_prefix(&*REPO_ROOT).context(format!(
         "stripping repo root {:?} from resource path {:?}",
@@ -273,11 +273,12 @@ async fn prepare_test(resource: RcStr) -> Result<Vc<PreparedTest>> {
         resource_path.display()
     ))?;
     let relative_path: RcStr = sys_to_unix(relative_path.to_str().unwrap()).into();
-    let path = root_fs.root().join(relative_path.clone());
-    let project_path = project_root.join(relative_path.clone());
+    let path = root_fs.root().await?.join(relative_path.clone())?;
+    let project_path = project_root.join(relative_path.clone())?;
     let tests_path = project_fs
         .root()
-        .join("turbopack/crates/turbopack-tests".into());
+        .await?
+        .join("turbopack/crates/turbopack-tests".into())?;
 
     let options_file = path.join("options.json".into());
 
@@ -312,13 +313,12 @@ async fn run_test_operation(prepared_test: ResolvedVc<PreparedTest>) -> Result<V
     let jest_entry_path = tests_path.join("js/jest-entry.ts".into());
     let test_path = project_path.join("input/index.js".into());
 
-    let chunk_root_path = path.join("output".into()).to_resolved().await?;
-    let static_root_path = path.join("static".into()).to_resolved().await?;
+    let chunk_root_path = path.join("output".into())?;
+    let static_root_path = path.join("static".into())?;
 
     let chunk_root_path_in_root_path_offset = project_path
-        .join("output".into())
-        .await?
-        .get_relative_path_to(&*project_root.await?)
+        .join("output".into())?
+        .get_relative_path_to(&project_root)
         .context("Project path is in root path")?;
 
     let env = Environment::new(Value::new(ExecutionEnvironment::NodeJsBuildTime(
