@@ -55,7 +55,7 @@ pub async fn bootstrap(
         bail!(
             "asset {} is not in base path {}",
             asset.ident().to_string().await?,
-            base_path.to_string()
+            base_path.value_to_string().await?
         );
     };
     let path = if let Some((name, ext)) = path.rsplit_once('.') {
