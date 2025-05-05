@@ -105,23 +105,31 @@ impl PageLoaderAsset {
         // If we are provided a prefix path, we need to rewrite our chunk paths to
         // remove that prefix.
         if let Some(rebase_path) = &*rebase_prefix_path.await? {
-            let root_path = rebase_path.root();
+            let root_path = (*rebase_path.root().await?).clone();
+
             let rebased = chunks
                 .await?
                 .iter()
                 .map(|&chunk| {
-                    Vc::upcast::<Box<dyn OutputAsset>>(ProxiedAsset::new(
-                        *chunk,
-                        FileSystemPath::rebase(chunk.path(), **rebase_path, root_path),
-                    ))
-                    .to_resolved()
+                    let rebase_path = rebase_path.clone();
+                    let root_path = root_path.clone();
+
+                    async move {
+                        Vc::upcast::<Box<dyn OutputAsset>>(ProxiedAsset::new(
+                            *chunk,
+                            FileSystemPath::rebase(&*chunk.path().await?, rebase_path, root_path)
+                                .await?,
+                        ))
+                        .to_resolved()
+                        .await
+                    }
                 })
                 .try_join()
                 .await?;
             chunks = ResolvedVc::cell(rebased);
         };
 
-        Ok(ChunkData::from_assets(*self.server_root, *chunks))
+        Ok(ChunkData::from_assets(self.server_root.clone(), *chunks))
     }
 }
 
@@ -137,7 +145,7 @@ impl OutputAsset for PageLoaderAsset {
         let root = self
             .rebase_prefix_path
             .await?
-            .map_or(*self.server_root, |path| *path);
+            .map_or(self.server_root.clone(), |path| *path);
         Ok(root.join(
             format!(
                 "static/chunks/pages{}",
