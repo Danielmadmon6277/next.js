@@ -62,7 +62,7 @@ impl DotenvProcessEnv {
             if let Err(e) = res {
                 return Err(e).context(anyhow!(
                     "unable to read {} for env vars",
-                    this.path.to_string()
+                    this.path.value_to_string().await?
                 ));
             }
 
