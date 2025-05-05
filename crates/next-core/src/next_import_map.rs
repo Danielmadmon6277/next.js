@@ -879,7 +879,7 @@ async fn insert_next_shared_aliases(
     // TODO: Add BeforeResolve plugins for `@next/font/google`
 
     let next_font_google_replacer_mapping = ImportMapping::Dynamic(ResolvedVc::upcast(
-        NextFontGoogleReplacer::new(*project_path)
+        NextFontGoogleReplacer::new(project_path.clone())
             .to_resolved()
             .await?,
     ))
@@ -979,10 +979,7 @@ async fn insert_next_shared_aliases(
     insert_package_alias(
         import_map,
         "@vercel/turbopack-node/",
-        turbopack_node::embed_js::embed_fs()
-            .root()
-            .to_resolved()
-            .await?,
+        (*turbopack_node::embed_js::embed_fs().root().await?).clone(),
     );
 
     let image_config = next_config.image_config().await?;
