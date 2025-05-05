@@ -420,7 +420,7 @@ fn node_file_trace<B: Backend + 'static>(
                 let original_output = exec_node(package_root, input);
 
                 let output_fs = DiskFileSystem::new("output".into(), directory.clone(), vec![]);
-                let output_dir = output_fs.root().to_resolved().await?;
+                let output_dir = (*output_fs.root().to_resolved().await?.await?).clone();
 
                 let source = FileSource::new(input);
                 let module_asset_context = ModuleAssetContext::new(
