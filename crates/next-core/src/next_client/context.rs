@@ -279,7 +279,7 @@ pub async fn get_client_module_options_context(
 
     // Now creates a webpack rules that applies to all codes.
     let enable_webpack_loaders =
-        webpack_loader_options(project_path, next_config, false, conditions).await?;
+        webpack_loader_options(project_path.clone(), next_config, false, conditions).await?;
 
     let tree_shaking_mode_for_user_code = *next_config
         .tree_shaking_mode_for_user_code(next_mode.is_development())
@@ -289,15 +289,25 @@ pub async fn get_client_module_options_context(
         .await?;
     let target_browsers = env.runtime_versions();
 
-    let mut next_client_rules =
-        get_next_client_transforms_rules(next_config, ty.into_value(), mode, false, encryption_key)
-            .await?;
-    let foreign_next_client_rules =
-        get_next_client_transforms_rules(next_config, ty.into_value(), mode, true, encryption_key)
-            .await?;
+    let mut next_client_rules = get_next_client_transforms_rules(
+        next_config,
+        ty.clone().into_value(),
+        mode,
+        false,
+        encryption_key,
+    )
+    .await?;
+    let foreign_next_client_rules = get_next_client_transforms_rules(
+        next_config,
+        ty.clone().into_value(),
+        mode,
+        true,
+        encryption_key,
+    )
+    .await?;
     let additional_rules: Vec<ModuleRule> = vec![
-        get_swc_ecma_transform_plugin_rule(next_config, project_path).await?,
-        get_relay_transform_rule(next_config, project_path).await?,
+        get_swc_ecma_transform_plugin_rule(next_config, project_path.clone()).await?,
+        get_relay_transform_rule(next_config, project_path.clone()).await?,
         get_emotion_transform_rule(next_config).await?,
         get_styled_components_transform_rule(next_config).await?,
         get_styled_jsx_transform_rule(next_config, target_browsers).await?,
