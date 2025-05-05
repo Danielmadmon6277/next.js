@@ -80,7 +80,7 @@ fn bench_emit(b: &mut Bencher, bench_input: &BenchInput) {
 
                 let input_dir = input.parent().parent();
                 let output_fs: Vc<NullFileSystem> = NullFileSystem.into();
-                let output_dir = output_fs.root().to_resolved().await?;
+                let output_dir = (*output_fs.root().to_resolved().await?.await?).clone();
 
                 let source = FileSource::new(input);
                 let compile_time_info = CompileTimeInfo::builder(
@@ -115,7 +115,7 @@ fn bench_emit(b: &mut Bencher, bench_input: &BenchInput) {
                 let module = module_asset_context
                     .process(Vc::upcast(source), Value::new(ReferenceType::Undefined))
                     .module();
-                let rebased = RebasedAsset::new(Vc::upcast(module), input_dir, *output_dir)
+                let rebased = RebasedAsset::new(Vc::upcast(module), input_dir, output_dir)
                     .to_resolved()
                     .await?;
 
