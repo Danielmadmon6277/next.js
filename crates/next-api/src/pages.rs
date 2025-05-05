@@ -126,9 +126,9 @@ impl PagesProject {
                 original_path,
                 ..
             } = *page.await?;
-            let pathname: RcStr = format!("/{}", next_router_path.await?.path).into();
+            let pathname: RcStr = format!("/{}", next_router_path.path).into();
             let pathname_vc = Vc::cell(pathname.clone());
-            let original_name = Vc::cell(format!("/{}", original_path.await?.path).into());
+            let original_name = Vc::cell(format!("/{}", original_path.path).into());
             let route = make_route(pathname_vc, original_name, page).await?;
             routes.insert(pathname, route);
             Ok(())
@@ -232,9 +232,9 @@ impl PagesProject {
             original_path,
             ..
         } = *item.await?;
-        let pathname: RcStr = format!("/{}", next_router_path.await?.path).into();
+        let pathname: RcStr = format!("/{}", next_router_path.path).into();
         let pathname_vc = Vc::cell(pathname.clone());
-        let original_name = Vc::cell(format!("/{}", original_path.await?.path).into());
+        let original_name = Vc::cell(format!("/{}", original_path.path).into());
         let endpoint = Vc::upcast(PageEndpoint::new(
             ty,
             self,
@@ -281,11 +281,15 @@ impl PagesProject {
     }
 
     #[turbo_tasks::function]
-    async fn pages_dir(self: Vc<Self>) -> Result<FileSystemPath> {
+    async fn pages_dir(self: Vc<Self>) -> Result<Vc<FileSystemPath>> {
         Ok(if let Some(pages) = self.pages_structure().await?.pages {
             pages.project_path()
         } else {
-            self.project().project_path().join("pages".into())
+            self.project()
+                .project_path()
+                .await?
+                .join("pages".into())?
+                .cell()
         })
     }
 
