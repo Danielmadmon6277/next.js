@@ -399,10 +399,10 @@ impl AppPageLoaderTreeBuilder {
         let loader_tree = &*loader_tree.await?;
 
         let modules = &loader_tree.modules;
-        if let Some(global_error) = modules.global_error {
+        if let Some(global_error) = &modules.global_error {
             let module = self
                 .base
-                .process_source(Vc::upcast(FileSource::new(global_error)))
+                .process_source(Vc::upcast(FileSource::new(global_error.clone())))
                 .to_resolved()
                 .await?;
             self.base.inner_assets.insert(GLOBAL_ERROR.into(), module);
