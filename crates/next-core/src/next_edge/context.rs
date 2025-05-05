@@ -109,10 +109,14 @@ pub async fn get_edge_resolve_options_context(
     next_config: Vc<NextConfig>,
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<ResolveOptionsContext>> {
-    let next_edge_import_map =
-        get_next_edge_import_map(project_path.clone(), ty, next_config, execution_context)
-            .to_resolved()
-            .await?;
+    let next_edge_import_map = get_next_edge_import_map(
+        project_path.clone(),
+        ty.clone(),
+        next_config,
+        execution_context,
+    )
+    .to_resolved()
+    .await?;
 
     let ty: ServerContextType = ty.into_value();
 
@@ -198,8 +202,7 @@ pub async fn get_edge_resolve_options_context(
             .await?
             .as_ref()
             .map(|p| project_path.join(p.to_owned()))
-            .to_resolved()
-            .await?,
+            .transpose()?,
         rules: vec![(
             foreign_code_context_condition(next_config, project_path).await?,
             resolve_options_context.clone().resolved_cell(),
@@ -230,7 +233,7 @@ pub async fn get_edge_chunking_context_with_client_assets(
         output_root,
         output_root_to_root_path,
         client_root,
-        output_root.join("chunks/ssr".into()).to_resolved().await?,
+        output_root.join("chunks/ssr".into())?,
         client_root.join("static/media".into())?,
         environment,
         next_mode.runtime_type(),
