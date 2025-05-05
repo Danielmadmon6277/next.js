@@ -103,19 +103,11 @@ pub async fn find_pages_structure(
     next_router_root: FileSystemPath,
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Result<Vc<PagesStructure>> {
-    let pages_root = project_root
-        .join("pages".into())?
-        .realpath()
-        .to_resolved()
-        .await?;
+    let pages_root = project_root.join("pages".into())?.realpath().await?;
     let pages_root = if *pages_root.get_type().await? == FileSystemEntryType::Directory {
         Some(pages_root)
     } else {
-        let src_pages_root = project_root
-            .join("src/pages".into())?
-            .realpath()
-            .to_resolved()
-            .await?;
+        let src_pages_root = project_root.join("src/pages".into())?.realpath().await?;
         if *src_pages_root.get_type().await? == FileSystemEntryType::Directory {
             Some(src_pages_root)
         } else {
@@ -165,7 +157,7 @@ async fn get_pages_structure_for_root_directory(
                         let Some(basename) = page_basename(name, page_extensions_raw) else {
                             continue;
                         };
-                        let base_path = project_path.join(basename.into());
+                        let base_path = project_path.join(basename.into())?;
                         match basename {
                             "_app" | "_document" | "_error" => {}
                             "500" => {
