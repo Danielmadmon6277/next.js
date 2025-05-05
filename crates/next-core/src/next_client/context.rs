@@ -157,19 +157,19 @@ pub async fn get_client_resolve_options_context(
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<ResolveOptionsContext>> {
     let next_client_import_map =
-        get_next_client_import_map(*project_path, ty, next_config, execution_context)
+        get_next_client_import_map(project_path.clone(), ty, next_config, execution_context)
             .to_resolved()
             .await?;
     let next_client_fallback_import_map = get_next_client_fallback_import_map(ty)
         .to_resolved()
         .await?;
     let next_client_resolved_map =
-        get_next_client_resolved_map(*project_path, project_path, *mode.await?)
+        get_next_client_resolved_map(project_path.clone(), project_path, *mode.await?)
             .to_resolved()
             .await?;
     let custom_conditions = vec![mode.await?.condition().into()];
     let resolve_options_context = ResolveOptionsContext {
-        enable_node_modules: Some(project_path.root().to_resolved().await?),
+        enable_node_modules: Some((*project_path.root().await?).clone()),
         custom_conditions,
         import_map: Some(next_client_import_map),
         fallback_import_map: Some(next_client_fallback_import_map),
