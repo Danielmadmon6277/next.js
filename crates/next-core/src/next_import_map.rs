@@ -615,7 +615,7 @@ async fn insert_next_server_special_aliases(
         .resolved_cell(),
     );
 
-    match ty {
+    match &ty {
         ServerContextType::Pages { .. } | ServerContextType::PagesApi { .. } => {}
         ServerContextType::PagesData { .. } => {}
         // the logic closely follows the one in createRSCAliases in webpack-config.ts
@@ -662,7 +662,7 @@ async fn insert_next_server_special_aliases(
         ServerContextType::Pages { .. } => {
             insert_exact_alias_map(
                 import_map,
-                project_path,
+                project_path.clone(),
                 fxindexmap! {
                     "server-only" => "next/dist/compiled/server-only/empty".to_string(),
                     "client-only" => "next/dist/compiled/client-only/index".to_string(),
@@ -679,7 +679,7 @@ async fn insert_next_server_special_aliases(
         | ServerContextType::Instrumentation { .. } => {
             insert_exact_alias_map(
                 import_map,
-                project_path,
+                project_path.clone(),
                 fxindexmap! {
                     "server-only" => "next/dist/compiled/server-only/empty".to_string(),
                     "client-only" => "next/dist/compiled/client-only/error".to_string(),
@@ -691,7 +691,7 @@ async fn insert_next_server_special_aliases(
         ServerContextType::AppSSR { .. } => {
             insert_exact_alias_map(
                 import_map,
-                project_path,
+                project_path.clone(),
                 fxindexmap! {
                     "server-only" => "next/dist/compiled/server-only/index".to_string(),
                     "client-only" => "next/dist/compiled/client-only/index".to_string(),
@@ -704,7 +704,7 @@ async fn insert_next_server_special_aliases(
 
     import_map.insert_exact_alias(
         "@vercel/og",
-        external_cjs_if_node(project_path, "next/dist/server/og/image-response"),
+        external_cjs_if_node(project_path.clone(), "next/dist/server/og/image-response"),
     );
 
     Ok(())
@@ -881,9 +881,9 @@ async fn insert_next_shared_aliases(
         import_map,
         mdx_import_source_file(),
         vec![
-            request_to_import_mapping(project_path, "./mdx-components"),
-            request_to_import_mapping(project_path, "./src/mdx-components"),
-            request_to_import_mapping(project_path, "@mdx-js/react"),
+            request_to_import_mapping(project_path.clone(), "./mdx-components"),
+            request_to_import_mapping(project_path.clone(), "./src/mdx-components"),
+            request_to_import_mapping(project_path.clone(), "@mdx-js/react"),
         ],
     );
 
@@ -946,7 +946,10 @@ async fn insert_next_shared_aliases(
     let react_client_package = get_react_client_package(next_config).await?;
     import_map.insert_exact_alias(
         "react-dom/client",
-        request_to_import_mapping(project_path, &format!("react-dom/{react_client_package}")),
+        request_to_import_mapping(
+            project_path.clone(),
+            &format!("react-dom/{react_client_package}"),
+        ),
     );
 
     import_map.insert_alias(
@@ -959,38 +962,41 @@ async fn insert_next_shared_aliases(
     //https://github.com/vercel/next.js/blob/f94d4f93e4802f951063cfa3351dd5a2325724b3/packages/next/src/build/webpack-config.ts#L1196
     import_map.insert_exact_alias(
         "setimmediate",
-        request_to_import_mapping(project_path, "next/dist/compiled/setimmediate"),
+        request_to_import_mapping(project_path.clone(), "next/dist/compiled/setimmediate"),
     );
 
     import_map.insert_exact_alias(
         "private-next-rsc-server-reference",
         request_to_import_mapping(
-            project_path,
+            project_path.clone(),
             "next/dist/build/webpack/loaders/next-flight-loader/server-reference",
         ),
     );
     import_map.insert_exact_alias(
         "private-next-rsc-action-client-wrapper",
         request_to_import_mapping(
-            project_path,
+            project_path.clone(),
             "next/dist/build/webpack/loaders/next-flight-loader/action-client-wrapper",
         ),
     );
     import_map.insert_exact_alias(
         "private-next-rsc-action-validate",
         request_to_import_mapping(
-            project_path,
+            project_path.clone(),
             "next/dist/build/webpack/loaders/next-flight-loader/action-validate",
         ),
     );
     import_map.insert_exact_alias(
         "private-next-rsc-action-encryption",
-        request_to_import_mapping(project_path, "next/dist/server/app-render/encryption"),
+        request_to_import_mapping(
+            project_path.clone(),
+            "next/dist/server/app-render/encryption",
+        ),
     );
     import_map.insert_exact_alias(
         "private-next-rsc-cache-wrapper",
         request_to_import_mapping(
-            project_path,
+            project_path.clone(),
             "next/dist/build/webpack/loaders/next-flight-loader/cache-wrapper",
         ),
     );
@@ -1006,13 +1012,13 @@ async fn insert_next_shared_aliases(
     if let Some(loader_file) = image_config.loader_file.as_deref() {
         import_map.insert_exact_alias(
             "next/dist/shared/lib/image-loader",
-            request_to_import_mapping(project_path, loader_file),
+            request_to_import_mapping(project_path.clone(), loader_file),
         );
 
         if is_runtime_edge {
             import_map.insert_exact_alias(
                 "next/dist/esm/shared/lib/image-loader",
-                request_to_import_mapping(project_path, loader_file),
+                request_to_import_mapping(project_path.clone(), loader_file),
             );
         }
     }
@@ -1023,16 +1029,16 @@ async fn insert_next_shared_aliases(
 #[turbo_tasks::function]
 pub async fn get_next_package(context_directory: FileSystemPath) -> Result<Vc<FileSystemPath>> {
     let result = resolve(
-        context_directory,
+        context_directory.clone(),
         Value::new(ReferenceType::CommonJs(CommonJsReferenceSubType::Undefined)),
         Request::parse(Value::new(Pattern::Constant("next/package.json".into()))),
-        node_cjs_resolve_options(context_directory.root()),
+        node_cjs_resolve_options((*context_directory.root().await?).clone()),
     );
     let source = result
         .first_source()
         .await?
         .context("Next.js package not found")?;
-    Ok(source.ident().path().parent().cell())
+    Ok(source.ident().path().await?.parent().cell())
 }
 
 pub async fn insert_alias_option<const N: usize>(
@@ -1043,7 +1049,9 @@ pub async fn insert_alias_option<const N: usize>(
 ) -> Result<()> {
     let conditions = BTreeMap::from(conditions.map(|c| (c.into(), ConditionValue::Set)));
     for (alias, value) in &alias_options.await? {
-        if let Some(mapping) = export_value_to_import_mapping(value, &conditions, project_path) {
+        if let Some(mapping) =
+            export_value_to_import_mapping(value, &conditions, project_path.clone())
+        {
             import_map.insert_alias(alias, mapping);
         }
     }
