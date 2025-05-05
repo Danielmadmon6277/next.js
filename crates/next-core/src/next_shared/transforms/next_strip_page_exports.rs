@@ -25,20 +25,16 @@ pub async fn get_next_pages_transforms_rule(
     Ok(ModuleRule::new(
         RuleCondition::all(vec![
             RuleCondition::all(vec![
-                RuleCondition::ResourcePathInExactDirectory(pages_dir.await?),
+                RuleCondition::ResourcePathInExactDirectory(pages_dir.clone()),
                 RuleCondition::not(RuleCondition::ResourcePathInExactDirectory(
-                    pages_dir.join("api".into()).await?,
+                    pages_dir.join("api".into())?,
                 )),
                 RuleCondition::not(RuleCondition::any(vec![
                     // TODO(alexkirsz): Possibly ignore _app as well?
-                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.js".into()).await?),
-                    RuleCondition::ResourcePathEquals(
-                        pages_dir.join("_document.jsx".into()).await?,
-                    ),
-                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.ts".into()).await?),
-                    RuleCondition::ResourcePathEquals(
-                        pages_dir.join("_document.tsx".into()).await?,
-                    ),
+                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.js".into())?),
+                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.jsx".into())?),
+                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.ts".into())?),
+                    RuleCondition::ResourcePathEquals(pages_dir.join("_document.tsx".into())?),
                 ])),
             ]),
             module_rule_match_js_no_url(enable_mdx_rs),
