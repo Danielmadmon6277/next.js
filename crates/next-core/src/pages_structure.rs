@@ -147,7 +147,7 @@ async fn get_pages_structure_for_root_directory(
         let dir_content = project_path.read_dir().await?;
         if let DirectoryContent::Entries(entries) = &*dir_content {
             for (name, entry) in entries.iter() {
-                let entry = entry.resolve_symlink().await?;
+                let entry = entry.clone().resolve_symlink().await?;
                 match entry {
                     DirectoryEntry::File(_) => {
                         // Do not process .d.ts files as routes
@@ -161,8 +161,10 @@ async fn get_pages_structure_for_root_directory(
                         match basename {
                             "_app" | "_document" | "_error" => {}
                             "500" => {
-                                let item_next_router_path =
-                                    next_router_path_for_basename(next_router_path, basename);
+                                let item_next_router_path = next_router_path_for_basename(
+                                    next_router_path.clone(),
+                                    basename,
+                                );
                                 let item_original_path = next_router_path.join(basename.into())?;
                                 let item = PagesStructureItem::new(
                                     base_path,
@@ -178,8 +180,10 @@ async fn get_pages_structure_for_root_directory(
                             }
 
                             basename => {
-                                let item_next_router_path =
-                                    next_router_path_for_basename(next_router_path, basename);
+                                let item_next_router_path = next_router_path_for_basename(
+                                    next_router_path.clone(),
+                                    basename,
+                                );
                                 let item_original_path = next_router_path.join(basename.into())?;
                                 items.push((
                                     basename,
@@ -230,7 +234,7 @@ async fn get_pages_structure_for_root_directory(
 
         Some(
             PagesDirectoryStructure {
-                project_path: *project_path,
+                project_path: project_path.clone(),
                 next_router_path: next_router_path.clone(),
                 items: items
                     .into_iter()
@@ -249,7 +253,7 @@ async fn get_pages_structure_for_root_directory(
         None
     };
 
-    let pages_path = if let Some(project_path) = *project_path {
+    let pages_path = if let Some(project_path) = &*project_path {
         project_path.clone()
     } else {
         project_root.join("pages".into())?
@@ -265,7 +269,7 @@ async fn get_pages_structure_for_root_directory(
                     .await?
                     .join("app.js".into())?,
             ),
-            app_router_path,
+            app_router_path.clone(),
             app_router_path,
         )
     };
@@ -280,7 +284,7 @@ async fn get_pages_structure_for_root_directory(
                     .await?
                     .join("document.js".into())?,
             ),
-            document_router_path,
+            document_router_path.clone(),
             document_router_path,
         )
     };
@@ -295,7 +299,7 @@ async fn get_pages_structure_for_root_directory(
                     .await?
                     .join("error.js".into())?,
             ),
-            error_router_path,
+            error_router_path.clone(),
             error_router_path,
         )
     };
