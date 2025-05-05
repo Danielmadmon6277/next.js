@@ -115,7 +115,7 @@ pub async fn get_next_client_import_map(
     )
     .await?;
 
-    match ty.into_value() {
+    match ty.clone().into_value() {
         ClientContextType::Pages { .. } => {}
         ClientContextType::App { app_dir } => {
             let react_flavor = if *next_config.enable_ppr().await?
@@ -444,11 +444,11 @@ pub async fn get_next_edge_import_map(
     )
     .await?;
 
-    insert_optimized_module_aliases(&mut import_map, project_path).await?;
+    insert_optimized_module_aliases(&mut import_map, project_path.clone()).await?;
 
     insert_alias_option(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         next_config.resolve_alias_options(),
         [],
     )
