@@ -2,7 +2,7 @@ use std::iter::once;
 
 use anyhow::Result;
 use turbo_rcstr::RcStr;
-use turbo_tasks::{FxIndexMap, OptionVcExt, ResolvedVc, Value, Vc};
+use turbo_tasks::{FxIndexMap, ResolvedVc, Value, Vc};
 use turbo_tasks_env::EnvMap;
 use turbo_tasks_fs::FileSystemPath;
 use turbopack::{
