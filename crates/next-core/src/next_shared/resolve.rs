@@ -409,9 +409,9 @@ impl AfterResolvePlugin for NextSharedRuntimeResolvePlugin {
         _reference_type: Value<ReferenceType>,
         _request: Vc<Request>,
     ) -> Result<Vc<ResolveResultOption>> {
-        let raw_fs_path = &*fs_path.clone();
+        let raw_fs_path = fs_path.clone();
         let modified_path = raw_fs_path.path.replace("next/dist/esm/", "next/dist/");
-        let new_path = fs_path.root().join(modified_path.into())?;
+        let new_path = fs_path.root().await?.join(modified_path.into())?;
         Ok(Vc::cell(Some(ResolveResult::source(ResolvedVc::upcast(
             FileSource::new(new_path).to_resolved().await?,
         )))))
