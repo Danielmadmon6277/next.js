@@ -49,19 +49,19 @@ impl PagesStructureItem {
         // Check if the file path + extension exists in the filesystem, if so use that. If not fall
         // back to the base path.
         for ext in self.extensions.await?.into_iter() {
-            let file_path: FileSystemPath = self.base_path.append(format!(".{ext}").into());
+            let file_path: FileSystemPath = self.base_path.append(format!(".{ext}").into())?;
             let ty = *file_path.get_type().await?;
             if matches!(ty, FileSystemEntryType::File | FileSystemEntryType::Symlink) {
-                return Ok(file_path);
+                return Ok(file_path.cell());
             }
         }
-        if let Some(fallback_path) = self.fallback_path {
-            Ok(*fallback_path)
+        if let Some(fallback_path) = &self.fallback_path {
+            Ok(fallback_path.clone().cell())
         } else {
             // If the file path that was passed in already has an extension, for example
             // `pages/index.js` it won't match the extensions list above because it already had an
             // extension and for example `.js.js` obviously won't match
-            Ok(*self.base_path)
+            Ok(self.base_path.clone().cell())
         }
     }
 }
@@ -104,7 +104,7 @@ pub async fn find_pages_structure(
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Result<Vc<PagesStructure>> {
     let pages_root = project_root
-        .join("pages".into())
+        .join("pages".into())?
         .realpath()
         .to_resolved()
         .await?;
@@ -112,7 +112,7 @@ pub async fn find_pages_structure(
         Some(pages_root)
     } else {
         let src_pages_root = project_root
-            .join("src/pages".into())
+            .join("src/pages".into())?
             .realpath()
             .to_resolved()
             .await?;
@@ -268,7 +268,11 @@ async fn get_pages_structure_for_root_directory(
         PagesStructureItem::new(
             pages_path.join("_app".into()),
             page_extensions,
-            Some(get_next_package(project_root).join("app.js".into())),
+            Some(
+                get_next_package(project_root)
+                    .await?
+                    .join("app.js".into())?,
+            ),
             app_router_path,
             app_router_path,
         )
@@ -279,7 +283,11 @@ async fn get_pages_structure_for_root_directory(
         PagesStructureItem::new(
             pages_path.join("_document".into()),
             page_extensions,
-            Some(get_next_package(project_root).join("document.js".into())),
+            Some(
+                get_next_package(project_root)
+                    .await?
+                    .join("document.js".into())?,
+            ),
             document_router_path,
             document_router_path,
         )
