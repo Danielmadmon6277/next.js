@@ -689,10 +689,10 @@ pub async fn load_next_js_template(
     let content = content.to_str()?.into_owned();
 
     let parent_path = path.parent();
-    let parent_path_value = &*parent_path.await?;
+    let parent_path_value = parent_path.clone();
 
-    let package_root = get_next_package(project_path).parent();
-    let package_root_value = &*package_root.await?;
+    let package_root = get_next_package(project_path).await?.parent();
+    let package_root_value = package_root.clone();
 
     /// See [regex::Regex::replace_all].
     fn replace_all<E>(
