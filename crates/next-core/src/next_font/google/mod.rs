@@ -664,11 +664,11 @@ async fn get_mock_stylesheet(
     } = *execution_context.await?;
     let asset_context =
         node_evaluate_asset_context(execution_context, None, None, "next_font".into(), false);
-    let loader_path = mock_fs.root().await?.join("loader.js".into());
+    let loader_path = mock_fs.root().await?.join("loader.js".into())?;
     let mocked_response_asset = asset_context
         .process(
             Vc::upcast(VirtualSource::new(
-                loader_path,
+                loader_path.clone().cell(),
                 AssetContent::file(
                     File::from(format!(
                         "import data from './{}'; export default function load() {{ return data; \
