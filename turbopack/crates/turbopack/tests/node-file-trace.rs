@@ -413,7 +413,7 @@ fn node_file_trace<B: Backend + 'static>(
                     package_root.clone(),
                     vec![],
                 ));
-                let input_dir = workspace_fs.root().to_resolved().await?;
+                let input_dir = (*workspace_fs.root().to_resolved().await?.await?).clone();
                 let input = input_dir.join(format!("tests/{input_string}").into());
 
                 #[cfg(not(feature = "bench_against_node_nft"))]
