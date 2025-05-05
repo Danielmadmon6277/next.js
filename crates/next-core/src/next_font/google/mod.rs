@@ -90,10 +90,10 @@ impl NextFontGoogleReplacer {
 
         let query_vc = Vc::cell(query);
 
-        let font_data = load_font_data(*self.project_path);
+        let font_data = load_font_data(self.project_path.clone());
         let options = font_options_from_query_map(query_vc, font_data);
 
-        let fallback = get_font_fallback(*self.project_path, options);
+        let fallback = get_font_fallback(self.project_path.clone(), options);
         let properties = get_font_css_properties(options, fallback).await?;
         let js_asset = VirtualSource::new(
             next_js_file_path("internal/font/google".into())
@@ -199,7 +199,7 @@ impl NextFontGoogleCssModuleReplacer {
     async fn import_map_result(&self, query: RcStr) -> Result<Vc<ImportMapResult>> {
         let request_hash = get_request_hash(&query).await?;
         let query_vc = Vc::cell(query);
-        let font_data = load_font_data(*self.project_path);
+        let font_data = load_font_data(self.project_path.clone());
         let options = font_options_from_query_map(query_vc, font_data);
         let stylesheet_url = get_stylesheet_url_from_options(options, font_data);
         let scoped_font_family =
@@ -225,7 +225,7 @@ impl NextFontGoogleCssModuleReplacer {
             )
             .await?;
 
-        let font_fallback = get_font_fallback(*self.project_path, options);
+        let font_fallback = get_font_fallback(self.project_path.clone(), options);
 
         let stylesheet = match stylesheet_str {
             Some(s) => Some(
