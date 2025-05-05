@@ -17,7 +17,7 @@ pub(crate) fn next_js_file(path: RcStr) -> Vc<FileContent> {
 }
 
 #[turbo_tasks::function]
-pub(crate) fn next_js_file_path(path: RcStr) -> FileSystemPath {
+pub(crate) fn next_js_file_path(path: RcStr) -> Vc<FileSystemPath> {
     next_js_fs().root().join(path)
 }
 
