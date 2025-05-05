@@ -42,11 +42,11 @@ pub async fn get_client_chunking_context(
     Ok(Vc::upcast(
         BrowserChunkingContext::builder(
             root_path,
-            server_root,
+            server_root.clone(),
             server_root_to_root_path,
-            server_root,
-            server_root.join("/_chunks".into()).to_resolved().await?,
-            server_root.join("/_assets".into()).to_resolved().await?,
+            server_root.clone(),
+            server_root.join("/_chunks".into())?,
+            server_root.join("/_assets".into())?,
             environment,
             RuntimeType::Development,
         )
@@ -61,12 +61,13 @@ pub async fn get_client_runtime_entries(
     project_path: FileSystemPath,
     node_env: Vc<NodeEnv>,
 ) -> Result<Vc<RuntimeEntries>> {
-    let resolve_options_context = get_client_resolve_options_context(*project_path, node_env);
+    let resolve_options_context =
+        get_client_resolve_options_context(project_path.clone(), node_env);
 
     let mut runtime_entries = Vec::new();
 
     let enable_react_refresh =
-        assert_can_resolve_react_refresh(*project_path, resolve_options_context)
+        assert_can_resolve_react_refresh(project_path.clone(), resolve_options_context)
             .await?
             .as_request();
     // It's important that React Refresh come before the regular bootstrap file,
@@ -74,17 +75,14 @@ pub async fn get_client_runtime_entries(
     // functions to be available.
     if let Some(request) = enable_react_refresh {
         runtime_entries.push(
-            RuntimeEntry::Request(
-                request.to_resolved().await?,
-                project_path.join("_".into()).to_resolved().await?,
-            )
-            .resolved_cell(),
+            RuntimeEntry::Request(request.to_resolved().await?, project_path.join("_".into())?)
+                .resolved_cell(),
         )
     };
 
     runtime_entries.push(
         RuntimeEntry::Source(ResolvedVc::upcast(
-            FileSource::new(embed_file_path("entry/bootstrap.ts".into()))
+            FileSource::new((*embed_file_path("entry/bootstrap.ts".into()).await?).clone())
                 .to_resolved()
                 .await?,
         ))
@@ -109,21 +107,21 @@ pub async fn create_web_entry_source(
 ) -> Result<Vc<Box<dyn ContentSource>>> {
     let compile_time_info = get_client_compile_time_info(browserslist_query, node_env);
     let asset_context = get_client_asset_context(
-        root_path,
+        root_path.clone(),
         execution_context,
         compile_time_info,
         node_env,
         source_maps_type,
     );
     let chunking_context = get_client_chunking_context(
-        root_path,
-        server_root,
+        root_path.clone(),
+        server_root.clone(),
         *server_root_to_root_path,
         compile_time_info.environment(),
     )
     .to_resolved()
     .await?;
-    let entries = get_client_runtime_entries(root_path, node_env);
+    let entries = get_client_runtime_entries(root_path.clone(), node_env);
 
     let runtime_entries = entries.resolve_entries(asset_context);
 
@@ -196,7 +194,7 @@ pub async fn create_web_entry_source(
         .await?;
 
     let entry_asset = Vc::upcast(DevHtmlAsset::new(
-        server_root.join("index.html".into()).to_resolved().await?,
+        server_root.join("index.html".into())?,
         entries,
     ));
 
