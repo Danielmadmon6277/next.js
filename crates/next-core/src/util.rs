@@ -672,7 +672,7 @@ pub async fn load_next_js_template(
     injections: FxIndexMap<&'static str, RcStr>,
     imports: FxIndexMap<&'static str, Option<RcStr>>,
 ) -> Result<Vc<Box<dyn Source>>> {
-    let path = virtual_next_js_template_path(project_path, path.to_string()).await?;
+    let path = virtual_next_js_template_path(project_path.clone(), path.to_string()).await?;
 
     let content = &*file_content_rope(path.read()).await?;
     let content = content.to_str()?.into_owned();
