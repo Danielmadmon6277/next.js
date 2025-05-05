@@ -63,7 +63,7 @@ impl Transition for NextEcmascriptClientReferenceTransition {
             None => source.ident(),
         };
         let ident_ref = ident.await?;
-        let ident_path = ident_ref.path.await?;
+        let ident_path = ident_ref.path.clone();
         let client_source = if ident_path.path.contains("next/dist/esm/") {
             let path = ident_ref.path.root().join(
                 ident_path
