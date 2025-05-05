@@ -186,12 +186,12 @@ pub async fn create_page_ssr_entry_module(
 }
 
 #[turbo_tasks::function]
-fn process_global_item(
+async fn process_global_item(
     item: Vc<PagesStructureItem>,
     reference_type: Value<ReferenceType>,
     module_context: Vc<Box<dyn AssetContext>>,
-) -> Vc<Box<dyn Module>> {
-    let source = Vc::upcast(FileSource::new(item.file_path()));
+) -> Result<Vc<Box<dyn Module>>> {
+    let source = Vc::upcast(FileSource::new(item.file_path().await?));
     module_context.process(source, reference_type).module()
 }
 
