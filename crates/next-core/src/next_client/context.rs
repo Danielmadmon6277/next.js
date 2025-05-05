@@ -238,20 +238,20 @@ pub async fn get_client_module_options_context(
 ) -> Result<Vc<ModuleOptionsContext>> {
     let next_mode = mode.await?;
     let resolve_options_context = get_client_resolve_options_context(
-        *project_path,
+        project_path.clone(),
         ty,
         mode,
         next_config,
         *execution_context,
     );
 
-    let tsconfig = get_typescript_transform_options(*project_path)
+    let tsconfig = get_typescript_transform_options(project_path.clone())
         .to_resolved()
         .await?;
-    let decorators_options = get_decorators_transform_options(*project_path);
+    let decorators_options = get_decorators_transform_options(project_path.clone());
     let enable_mdx_rs = *next_config.mdx_rs().await?;
     let jsx_runtime_options = get_jsx_transform_options(
-        *project_path,
+        project_path.clone(),
         mode,
         Some(resolve_options_context),
         false,
@@ -311,11 +311,7 @@ pub async fn get_client_module_options_context(
     next_client_rules.extend(additional_rules);
 
     let postcss_transform_options = PostCssTransformOptions {
-        postcss_package: Some(
-            get_postcss_package_mapping(*project_path)
-                .to_resolved()
-                .await?,
-        ),
+        postcss_package: Some(get_postcss_package_mapping(project_path.clone()).await?),
         config_location: PostCssConfigLocation::ProjectPathOrLocalPath,
         ..Default::default()
     };
