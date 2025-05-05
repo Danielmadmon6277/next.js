@@ -4,7 +4,6 @@ use anyhow::Result;
 use once_cell::sync::Lazy;
 use rustc_hash::FxHashMap;
 use turbo_rcstr::RcStr;
-use turbo_tasks::Vc;
 use turbo_tasks_fs::FileSystemPath;
 
 use crate::next_app::{AppPage, PageSegment, PageType};
