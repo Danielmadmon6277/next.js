@@ -89,10 +89,7 @@ impl CustomTransformer for NextJsReactServerComponents {
                 dynamic_io_enabled: self.dynamic_io_enabled,
                 use_cache_enabled: self.use_cache_enabled,
             }),
-            match &self.app_dir {
-                None => None,
-                Some(path) => Some(path.path.clone().into()),
-            },
+            self.app_dir.as_ref().map(|path| path.path.clone().into()),
         );
 
         program.visit_with(&mut visitor);
