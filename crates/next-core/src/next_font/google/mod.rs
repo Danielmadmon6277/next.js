@@ -375,7 +375,8 @@ impl ImportMappingReplacement for NextFontGoogleFontFileReplacer {
 
         // doesn't seem ideal to download the font into a string, but probably doesn't
         // really matter either.
-        let Some(font) = fetch_from_google_fonts(Vc::cell(url.into()), font_virtual_path).await?
+        let Some(font) =
+            fetch_from_google_fonts(Vc::cell(url.into()), font_virtual_path.clone()).await?
         else {
             return Ok(ImportMapResult::Result(ResolveResult::unresolvable()).cell());
         };
