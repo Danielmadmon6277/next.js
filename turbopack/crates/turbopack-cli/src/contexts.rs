@@ -51,21 +51,16 @@ async fn foreign_code_context_condition() -> Result<ContextCondition> {
 pub async fn get_client_import_map(project_path: FileSystemPath) -> Result<Vc<ImportMap>> {
     let mut import_map = ImportMap::empty();
 
-    import_map.insert_singleton_alias("@swc/helpers", project_path);
-    import_map.insert_singleton_alias("styled-jsx", project_path);
-    import_map.insert_singleton_alias("react", project_path);
-    import_map.insert_singleton_alias("react-dom", project_path);
+    import_map.insert_singleton_alias("@swc/helpers", project_path.clone());
+    import_map.insert_singleton_alias("styled-jsx", project_path.clone());
+    import_map.insert_singleton_alias("react", project_path.clone());
+    import_map.insert_singleton_alias("react-dom", project_path.clone());
 
     import_map.insert_wildcard_alias(
         "@vercel/turbopack-ecmascript-runtime/",
         ImportMapping::PrimaryAlternative(
             "./*".into(),
-            Some(
-                turbopack_ecmascript_runtime::embed_fs()
-                    .root()
-                    .to_resolved()
-                    .await?,
-            ),
+            Some((*turbopack_ecmascript_runtime::embed_fs().root().await?).clone()),
         )
         .resolved_cell(),
     );
@@ -78,9 +73,11 @@ pub async fn get_client_resolve_options_context(
     project_path: FileSystemPath,
     node_env: Vc<NodeEnv>,
 ) -> Result<Vc<ResolveOptionsContext>> {
-    let next_client_import_map = get_client_import_map(project_path).to_resolved().await?;
+    let next_client_import_map = get_client_import_map(project_path.clone())
+        .to_resolved()
+        .await?;
     let module_options_context = ResolveOptionsContext {
-        enable_node_modules: Some(project_path.root().to_resolved().await?),
+        enable_node_modules: Some((*project_path.root().await?).clone()),
         custom_conditions: vec![node_env.await?.to_string().into(), "browser".into()],
         import_map: Some(next_client_import_map),
         browser: true,
@@ -116,10 +113,11 @@ async fn get_client_module_options_context(
         ..Default::default()
     };
 
-    let resolve_options_context = get_client_resolve_options_context(project_path, node_env);
+    let resolve_options_context =
+        get_client_resolve_options_context(project_path.clone(), node_env);
 
     let enable_react_refresh = is_dev
-        && assert_can_resolve_react_refresh(project_path, resolve_options_context)
+        && assert_can_resolve_react_refresh(project_path.clone(), resolve_options_context)
             .await?
             .is_found();
 
@@ -176,9 +174,10 @@ pub fn get_client_asset_context(
     node_env: Vc<NodeEnv>,
     source_maps_type: SourceMapsType,
 ) -> Vc<Box<dyn AssetContext>> {
-    let resolve_options_context = get_client_resolve_options_context(project_path, node_env);
+    let resolve_options_context =
+        get_client_resolve_options_context(project_path.clone(), node_env);
     let module_options_context = get_client_module_options_context(
-        project_path,
+        project_path.clone(),
         execution_context,
         compile_time_info.environment(),
         node_env,
