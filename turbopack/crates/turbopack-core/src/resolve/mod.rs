@@ -1780,12 +1780,12 @@ async fn resolve_internal_inline(
     options: Vc<ResolveOptions>,
 ) -> Result<Vc<ResolveResult>> {
     let span = {
-        let lookup_path = lookup_path.to_string();
-        let request = request.to_string().await?.to_string();
+        let lookup_path = lookup_path.value_to_string().await?;
+        let request = request.to_string().await?;
         tracing::info_span!(
             "internal resolving",
-            lookup_path = lookup_path,
-            request = request
+            lookup_path = %lookup_path,
+            request = %request
         )
     };
     async move {
