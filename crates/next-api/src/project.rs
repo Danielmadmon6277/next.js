@@ -672,23 +672,23 @@ impl Project {
     }
 
     #[turbo_tasks::function]
-    pub async fn node_root(self: Vc<Self>) -> Result<FileSystemPath> {
+    pub async fn node_root(self: Vc<Self>) -> Result<Vc<FileSystemPath>> {
         let this = self.await?;
         Ok(self.output_fs().root().join(this.dist_dir.clone()))
     }
 
     #[turbo_tasks::function]
-    pub fn client_root(self: Vc<Self>) -> FileSystemPath {
+    pub fn client_root(self: Vc<Self>) -> Vc<FileSystemPath> {
         self.client_fs().root()
     }
 
     #[turbo_tasks::function]
-    pub fn project_root_path(self: Vc<Self>) -> FileSystemPath {
+    pub fn project_root_path(self: Vc<Self>) -> Vc<FileSystemPath> {
         self.project_fs().root()
     }
 
     #[turbo_tasks::function]
-    pub async fn client_relative_path(self: Vc<Self>) -> Result<FileSystemPath> {
+    pub async fn client_relative_path(self: Vc<Self>) -> Result<Vc<FileSystemPath>> {
         let next_config = self.next_config().await?;
         Ok(self.client_root().join(
             format!(
@@ -712,7 +712,7 @@ impl Project {
     }
 
     #[turbo_tasks::function]
-    pub async fn project_path(self: Vc<Self>) -> Result<FileSystemPath> {
+    pub async fn project_path(self: Vc<Self>) -> Result<Vc<FileSystemPath>> {
         let this = self.await?;
         let root = self.project_root_path();
         let project_relative = this.project_path.strip_prefix(&*this.root_path).unwrap();
