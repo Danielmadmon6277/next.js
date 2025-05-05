@@ -1091,7 +1091,7 @@ impl AppEndpoint {
             let mut config = NextSegmentConfig::default();
 
             for layout in root_layouts.iter().rev() {
-                let source = Vc::upcast(FileSource::new(layout.clone()));
+                let source = Vc::upcast(FileSource::new(layout));
                 let layout_config = parse_segment_config_from_source(source);
                 config.apply_parent_config(&*layout_config.await?);
             }
