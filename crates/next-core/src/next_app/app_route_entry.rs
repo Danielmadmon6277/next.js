@@ -80,7 +80,7 @@ pub async fn get_app_route_entry(
             "VAR_DEFINITION_FILENAME" => path.file_stem().as_ref().unwrap().as_str().into(),
             // TODO(alexkirsz) Is this necessary?
             "VAR_DEFINITION_BUNDLE_PATH" => "".to_string().into(),
-            "VAR_RESOLVED_PAGE_PATH" => path.to_string().into(),
+            "VAR_RESOLVED_PAGE_PATH" => path.value_to_string().await?,
             "VAR_USERLAND" => INNER.into(),
         },
         fxindexmap! {
