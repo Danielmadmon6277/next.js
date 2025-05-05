@@ -106,7 +106,7 @@ impl InstrumentationEndpoint {
 
         let evaluatable_assets = get_server_runtime_entries(
             Value::new(ServerContextType::Instrumentation {
-                app_dir: this.app_dir,
+                app_dir: this.app_dir.clone(),
                 ecmascript_client_reference_transition_name: this
                     .ecmascript_client_reference_transition_name,
             }),
