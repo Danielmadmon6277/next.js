@@ -221,8 +221,8 @@ pub async fn get_server_resolve_options_context(
         server_external_packages_plugin
     } else {
         ExternalCjsModulesResolvePlugin::new(
-            *project_path,
-            project_path.root(),
+            project_path.clone(),
+            (*project_path.root().await?).clone(),
             ExternalPredicate::AllExcept(ResolvedVc::cell(transpiled_packages)).cell(),
             *next_config.import_externals().await?,
         )
