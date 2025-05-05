@@ -47,7 +47,7 @@ pub async fn dynamic_image_metadata_source(
 ) -> Result<Vc<Box<dyn Source>>> {
     let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
-    let ext = &*path.extension().await?;
+    let ext = &*path.extension();
 
     let hash_query = format!("?{:x}", hash_file_content(path.clone()).await?);
 
