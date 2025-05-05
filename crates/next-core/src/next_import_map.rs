@@ -347,22 +347,25 @@ pub async fn get_next_server_import_map(
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/head",
-                request_to_import_mapping(project_path, "next/dist/client/components/noop-head"),
+                request_to_import_mapping(
+                    project_path.clone(),
+                    "next/dist/client/components/noop-head",
+                ),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/dynamic",
-                request_to_import_mapping(project_path, "next/dist/shared/lib/app-dynamic"),
+                request_to_import_mapping(project_path.clone(), "next/dist/shared/lib/app-dynamic"),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/link",
-                request_to_import_mapping(project_path, "next/dist/client/app-dir/link"),
+                request_to_import_mapping(project_path.clone(), "next/dist/client/app-dir/link"),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/form",
-                request_to_import_mapping(project_path, "next/dist/client/app-dir/form"),
+                request_to_import_mapping(project_path.clone(), "next/dist/client/app-dir/form"),
             );
         }
         ServerContextType::Middleware { .. } | ServerContextType::Instrumentation { .. } => {}
@@ -464,17 +467,20 @@ pub async fn get_next_edge_import_map(
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/head",
-                request_to_import_mapping(project_path, "next/dist/client/components/noop-head"),
+                request_to_import_mapping(
+                    project_path.clone(),
+                    "next/dist/client/components/noop-head",
+                ),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/dynamic",
-                request_to_import_mapping(project_path, "next/dist/shared/lib/app-dynamic"),
+                request_to_import_mapping(project_path.clone(), "next/dist/shared/lib/app-dynamic"),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/link",
-                request_to_import_mapping(project_path, "next/dist/client/app-dir/link"),
+                request_to_import_mapping(project_path.clone(), "next/dist/client/app-dir/link"),
             );
         }
     }
@@ -608,10 +614,10 @@ async fn insert_next_server_special_aliases(
         ServerContextType::AppSSR { app_dir }
         | ServerContextType::AppRSC { app_dir, .. }
         | ServerContextType::AppRoute { app_dir, .. } => {
-            let next_package = get_next_package(*app_dir).to_resolved().await?;
+            let next_package = (*get_next_package(*app_dir).await?).clone();
             import_map.insert_exact_alias(
                 "styled-jsx",
-                request_to_import_mapping(next_package, "styled-jsx"),
+                request_to_import_mapping(next_package.clone(), "styled-jsx"),
             );
             import_map.insert_wildcard_alias(
                 "styled-jsx/",
