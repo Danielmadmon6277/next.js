@@ -98,8 +98,8 @@ impl ClientReferenceManifest {
                 layout_segment_client_chunks,
                 client_component_ssr_chunks,
             } = &*client_references_chunks.await?;
-            let client_relative_path = &*client_relative_path.await?;
-            let node_root_ref = &*node_root.await?;
+            let client_relative_path = &*client_relative_path.clone();
+            let node_root_ref = &*node_root.clone();
             let rsc_app_entry_chunks = &*rsc_app_entry_chunks.await?;
 
             let client_references_ecmascript = client_references
