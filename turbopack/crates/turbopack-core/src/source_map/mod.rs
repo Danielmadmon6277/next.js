@@ -411,7 +411,7 @@ impl SourceMap {
         ) -> Result<(Arc<str>, Arc<str>)> {
             Ok(
                 if let Some(path) = origin.parent().try_join((&*source_request).into())? {
-                    let path_str = path.to_string();
+                    let path_str = path.value_to_string().await?;
                     let source = format!("{SOURCE_URL_PROTOCOL}///{}", path_str);
                     let source_content = if let Some(source_content) = source_content {
                         source_content
