@@ -100,14 +100,14 @@ pub enum MetadataItem {
 pub async fn get_metadata_route_name(meta: MetadataItem) -> Result<Vc<RcStr>> {
     Ok(match meta {
         MetadataItem::Static { path } => {
-            let path_value = path.await?;
+            let path_value = path;
             Vc::cell(path_value.file_name().into())
         }
         MetadataItem::Dynamic { path } => {
-            let Some(stem) = &*path.file_stem().await? else {
+            let Some(stem) = path.file_stem() else {
                 bail!(
                     "unable to resolve file stem for metadata item at {}",
-                    path.to_string().await?
+                    path.to_string()
                 );
             };
 
