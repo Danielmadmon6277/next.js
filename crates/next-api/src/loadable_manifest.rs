@@ -29,7 +29,7 @@ pub async fn create_react_loadable_manifest(
 
         let id = module_id.to_string().owned().await?;
 
-        let client_relative_path_value = client_relative_path.await?;
+        let client_relative_path_value = client_relative_path.clone();
         let files = chunk_output
             .iter()
             .map(move |&file| {
