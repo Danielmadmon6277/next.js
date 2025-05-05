@@ -154,8 +154,8 @@ impl Issue for PageStaticInfoIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
-        *self.file_path
+    fn file_path(&self) -> Vc<FileSystemPath> {
+        self.file_path.clone().cell()
     }
 
     #[turbo_tasks::function]
