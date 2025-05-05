@@ -117,7 +117,7 @@ pub async fn get_edge_resolve_options_context(
     let ty: ServerContextType = ty.into_value();
 
     let mut before_resolve_plugins = vec![ResolvedVc::upcast(
-        ModuleFeatureReportResolvePlugin::new(*project_path)
+        ModuleFeatureReportResolvePlugin::new(project_path.clone())
             .to_resolved()
             .await?,
     )];
@@ -128,7 +128,7 @@ pub async fn get_edge_resolve_options_context(
             | ServerContextType::AppRSC { .. }
     ) {
         before_resolve_plugins.push(ResolvedVc::upcast(
-            NextFontLocalResolvePlugin::new(*project_path)
+            NextFontLocalResolvePlugin::new(project_path.clone())
                 .to_resolved()
                 .await?,
         ));
@@ -143,19 +143,19 @@ pub async fn get_edge_resolve_options_context(
             | ServerContextType::Instrumentation { .. }
     ) {
         before_resolve_plugins.push(ResolvedVc::upcast(
-            get_invalid_client_only_resolve_plugin(project_path)
+            get_invalid_client_only_resolve_plugin(project_path.clone())
                 .to_resolved()
                 .await?,
         ));
         before_resolve_plugins.push(ResolvedVc::upcast(
-            get_invalid_styled_jsx_resolve_plugin(project_path)
+            get_invalid_styled_jsx_resolve_plugin(project_path.clone())
                 .to_resolved()
                 .await?,
         ));
     }
 
     let after_resolve_plugins = vec![ResolvedVc::upcast(
-        NextSharedRuntimeResolvePlugin::new(*project_path)
+        NextSharedRuntimeResolvePlugin::new(project_path.clone())
             .to_resolved()
             .await?,
     )];
@@ -175,7 +175,7 @@ pub async fn get_edge_resolve_options_context(
     };
 
     let resolve_options_context = ResolveOptionsContext {
-        enable_node_modules: Some(project_path.root().to_resolved().await?),
+        enable_node_modules: Some((*project_path.root().await?).clone()),
         enable_edge_node_externals: true,
         custom_conditions,
         import_map: Some(next_edge_import_map),
