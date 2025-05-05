@@ -229,10 +229,10 @@ pub async fn get_edge_chunking_context_with_client_assets(
     let output_root = node_root.join("server/edge".into())?;
     let next_mode = mode.await?;
     let mut builder = BrowserChunkingContext::builder(
-        root_path,
-        output_root,
+        root_path.clone(),
+        output_root.clone(),
         output_root_to_root_path,
-        client_root,
+        client_root.clone(),
         output_root.join("chunks/ssr".into())?,
         client_root.join("static/media".into())?,
         environment,
@@ -290,9 +290,9 @@ pub async fn get_edge_chunking_context(
     let next_mode = mode.await?;
     let mut builder = BrowserChunkingContext::builder(
         root_path,
-        output_root,
+        output_root.clone(),
         node_root_to_root_path,
-        output_root,
+        output_root.clone(),
         output_root.join("chunks".into())?,
         output_root.join("assets".into())?,
         environment,
