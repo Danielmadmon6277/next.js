@@ -201,6 +201,12 @@ impl CompileTimeDefines {
 }
 
 #[turbo_tasks::value]
+#[derive(Debug, Clone, Copy)]
+pub enum OutputRelativeConstant {
+    DirName,
+}
+
+#[turbo_tasks::value]
 #[derive(Debug, Clone)]
 pub enum FreeVarReference {
     EcmaScriptModule {
@@ -211,6 +217,7 @@ pub enum FreeVarReference {
     Ident(RcStr),
     Member(RcStr, RcStr),
     Value(CompileTimeDefineValue),
+    OutputRelative(OutputRelativeConstant),
     Error(RcStr),
 }
 

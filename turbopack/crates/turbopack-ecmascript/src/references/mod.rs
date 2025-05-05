@@ -9,6 +9,7 @@ pub mod external_module;
 pub mod ident;
 pub mod member;
 pub mod node;
+pub mod output_relative;
 pub mod pattern_mapping;
 pub mod raw;
 pub mod require_context;
@@ -60,7 +61,7 @@ use turbo_tasks_fs::{rope::Rope, FileSystemPath};
 use turbopack_core::{
     compile_time_info::{
         CompileTimeInfo, DefineableNameSegment, FreeVarReference, FreeVarReferences,
-        FreeVarReferencesIndividual,
+        FreeVarReferencesIndividual, OutputRelativeConstant,
     },
     environment::Rendering,
     error::PrettyPrintError,
@@ -146,6 +147,7 @@ use crate::{
         ident::IdentReplacement,
         member::MemberReplacement,
         node::PackageJsonReference,
+        output_relative::OutputRelative,
         require_context::{RequireContextAssetReference, RequireContextMap},
         type_issue::SpecifiedModuleTypeIssue,
     },
@@ -1504,6 +1506,17 @@ async fn compile_time_info_for_module_type(
     free_var_references
         .entry(vec![DefineableNameSegment::Name("require".into())])
         .or_insert(require.into());
+    free_var_references
+        .entry(vec![
+            DefineableNameSegment::Name("__dirname".into()),
+            DefineableNameSegment::TypeOf,
+        ])
+        .or_insert("string".into());
+    free_var_references
+        .entry(vec![DefineableNameSegment::Name("__dirname".into())])
+        .or_insert(FreeVarReference::OutputRelative(
+            OutputRelativeConstant::DirName,
+        ));
 
     free_var_references.extend(TUBROPACK_RUNTIME_FUNCTION_SHORTCUTS.into_iter().map(
         |(name, shortcut)| {
@@ -2518,7 +2531,6 @@ async fn handle_free_var_reference(
                 errors::failed_to_analyse::ecmascript::FREE_VAR_REFERENCE.to_string(),
             ),
         ),
-
         FreeVarReference::Value(value) => {
             analysis.add_code_gen(ConstantValueCodeGen::new(
                 Value::new(value.clone()),
@@ -2585,6 +2597,9 @@ async fn handle_free_var_reference(
                 export.clone(),
                 ast_path.to_vec().into(),
             ));
+        }
+        FreeVarReference::OutputRelative(kind) => {
+            analysis.add_code_gen(OutputRelative::new(ast_path.to_vec().into(), *kind));
         }
     }
     Ok(true)

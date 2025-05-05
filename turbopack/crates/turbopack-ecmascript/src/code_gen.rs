@@ -25,6 +25,7 @@ use crate::references::{
     },
     ident::IdentReplacement,
     member::MemberReplacement,
+    output_relative::OutputRelative,
     require_context::RequireContextAssetReferenceCodeGen,
     unreachable::Unreachable,
     worker::WorkerAssetReferenceCodeGen,
@@ -118,6 +119,7 @@ pub enum CodeGen {
     RequireContextAssetReferenceCodeGen(RequireContextAssetReferenceCodeGen),
     UrlAssetReferenceCodeGen(UrlAssetReferenceCodeGen),
     WorkerAssetReferenceCodeGen(WorkerAssetReferenceCodeGen),
+    OutputRelativeCodeGen(OutputRelative),
 }
 
 impl CodeGen {
@@ -146,6 +148,7 @@ impl CodeGen {
             Self::RequireContextAssetReferenceCodeGen(v) => v.code_generation(g, ctx).await,
             Self::UrlAssetReferenceCodeGen(v) => v.code_generation(g, ctx).await,
             Self::WorkerAssetReferenceCodeGen(v) => v.code_generation(g, ctx).await,
+            Self::OutputRelativeCodeGen(v) => v.code_generation(g, ctx).await,
         }
     }
 }

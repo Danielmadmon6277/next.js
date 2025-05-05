@@ -602,6 +602,10 @@ impl From<&FreeVarReference> for JsValue {
             FreeVarReference::Error(_) => {
                 JsValue::unknown_empty(false, "compile time injected free var error")
             }
+            FreeVarReference::OutputRelative(_) => JsValue::unknown_empty(
+                false,
+                "compile time injected free var relative to output tree",
+            ),
         }
     }
 }

@@ -30,6 +30,7 @@ if ("TURBOPACK compile-time falsy", 0) {
 // TODO short-circuit is not implemented yet
 ("TURBOPACK compile-time value", "development") != 'production' && console.log('development');
 ("TURBOPACK compile-time value", "development") == 'production' && console.log('production');
+console.log("/ROOT/turbopack/crates/turbopack-tests/tests/snapshot/comptime/define/output");
 }}),
 }]);
 
