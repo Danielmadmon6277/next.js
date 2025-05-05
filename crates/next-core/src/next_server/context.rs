@@ -143,10 +143,11 @@ pub async fn get_server_resolve_options_context(
     .await?;
     let foreign_code_context_condition =
         foreign_code_context_condition(next_config, project_path.clone()).await?;
-    let root_dir = project_path.root().to_resolved().await?;
-    let module_feature_report_resolve_plugin = ModuleFeatureReportResolvePlugin::new(*project_path)
-        .to_resolved()
-        .await?;
+    let root_dir = (*project_path.root().to_resolved().await?).clone();
+    let module_feature_report_resolve_plugin =
+        ModuleFeatureReportResolvePlugin::new(project_path.clone())
+            .to_resolved()
+            .await?;
     let invalid_client_only_resolve_plugin = get_invalid_client_only_resolve_plugin(project_path)
         .to_resolved()
         .await?;
@@ -162,7 +163,7 @@ pub async fn get_server_resolve_options_context(
     )
     .await?;
 
-    let mut transpiled_packages = get_transpiled_packages(next_config, *project_path)
+    let mut transpiled_packages = get_transpiled_packages(next_config, project_path.clone())
         .owned()
         .await?;
 
@@ -195,8 +196,8 @@ pub async fn get_server_resolve_options_context(
     let ty = ty.into_value();
 
     let server_external_packages_plugin = ExternalCjsModulesResolvePlugin::new(
-        *project_path,
-        project_path.root(),
+        project_path.clone(),
+        (*project_path.root().await?).clone(),
         ExternalPredicate::Only(ResolvedVc::cell(external_packages)).cell(),
         *next_config.import_externals().await?,
     )
@@ -229,11 +230,11 @@ pub async fn get_server_resolve_options_context(
         .await?
     };
 
-    let next_external_plugin = NextExternalResolvePlugin::new(*project_path)
+    let next_external_plugin = NextExternalResolvePlugin::new(project_path.clone())
         .to_resolved()
         .await?;
     let next_node_shared_runtime_plugin =
-        NextNodeSharedRuntimeResolvePlugin::new(*project_path, Value::new(ty))
+        NextNodeSharedRuntimeResolvePlugin::new(project_path.clone(), Value::new(ty))
             .to_resolved()
             .await?;
 
@@ -243,7 +244,7 @@ pub async fn get_server_resolve_options_context(
         | ServerContextType::AppRSC { .. } => {
             vec![
                 ResolvedVc::upcast(
-                    NextFontLocalResolvePlugin::new(*project_path)
+                    NextFontLocalResolvePlugin::new(project_path.clone())
                         .to_resolved()
                         .await?,
                 ),
