@@ -1,9 +1,7 @@
 use anyhow::Result;
 use tracing::Instrument;
 use turbo_rcstr::RcStr;
-use turbo_tasks::{
-    FxIndexMap, ResolvedVc, TryFlatJoinIterExt, TryJoinIterExt, Value, ValueToString, Vc,
-};
+use turbo_tasks::{FxIndexMap, ResolvedVc, TryFlatJoinIterExt, TryJoinIterExt, Value, Vc};
 use turbopack_core::{
     chunk::{availability_info::AvailabilityInfo, ChunkingContext},
     module::Module,
