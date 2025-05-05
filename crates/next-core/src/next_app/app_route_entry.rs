@@ -55,7 +55,7 @@ pub async fn get_app_route_entry(
     let original_name: RcStr = page.to_string().into();
     let pathname: RcStr = AppPath::from(page.clone()).to_string().into();
 
-    let path = source.ident().path();
+    let path = source.ident().path().await?;
 
     const INNER: &str = "INNER_APP_ROUTE";
 
@@ -73,14 +73,14 @@ pub async fn get_app_route_entry(
     // Load the file from the next.js codebase.
     let virtual_source = load_next_js_template(
         "app-route.js",
-        project_root,
+        project_root.clone(),
         fxindexmap! {
             "VAR_DEFINITION_PAGE" => page.to_string().into(),
             "VAR_DEFINITION_PATHNAME" => pathname.clone(),
-            "VAR_DEFINITION_FILENAME" => path.file_stem().await?.as_ref().unwrap().as_str().into(),
+            "VAR_DEFINITION_FILENAME" => path.file_stem().as_ref().unwrap().as_str().into(),
             // TODO(alexkirsz) Is this necessary?
             "VAR_DEFINITION_BUNDLE_PATH" => "".to_string().into(),
-            "VAR_RESOLVED_PAGE_PATH" => path.to_string().owned().await?,
+            "VAR_RESOLVED_PAGE_PATH" => path.to_string().into(),
             "VAR_USERLAND" => INNER.into(),
         },
         fxindexmap! {
