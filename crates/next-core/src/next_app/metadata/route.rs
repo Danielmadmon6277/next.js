@@ -191,7 +191,7 @@ async fn static_route_source(mode: NextMode, path: FileSystemPath) -> Result<Vc<
         is_open_graph = is_open_graph,
         file_size_limit = file_size_limit,
         img_name = img_name,
-        path = StringifyJs(&path.to_string()),
+        path = StringifyJs(&path.value_to_string().await?),
     };
 
     let file = File::from(code);
