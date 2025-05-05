@@ -88,7 +88,7 @@ pub async fn create_page_ssr_entry_module(
     // Load the file from the next.js codebase.
     let mut source = load_next_js_template(
         template_file,
-        project_root,
+        project_root.clone(),
         replacements,
         FxIndexMap::default(),
         FxIndexMap::default(),
@@ -228,7 +228,7 @@ async fn wrap_edge_page(
 
     let source = load_next_js_template(
         "edge-ssr.js",
-        project_root,
+        project_root.clone(),
         fxindexmap! {
             "VAR_USERLAND" => INNER.into(),
             "VAR_PAGE" => pathname.clone(),
