@@ -86,7 +86,7 @@ pub async fn get_next_server_transforms_rules(
     if !foreign_code {
         rules.push(get_next_page_static_info_assert_rule(
             mdx_rs,
-            Some(context_ty),
+            Some(context_ty.clone()),
             None,
         ));
     }
