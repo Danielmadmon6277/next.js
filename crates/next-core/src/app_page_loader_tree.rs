@@ -96,7 +96,7 @@ impl AppPageLoaderTreeBuilder {
 
         // naively convert metadataitem -> metadatawithaltitem to iterate along with
         // other icon items
-        let icon = if let Some(favicon) = global_metadata.and_then(|m| m.favicon) {
+        let icon = if let Some(favicon) = global_metadata.and_then(|m| m.favicon.clone()) {
             let item = match favicon {
                 MetadataItem::Static { path } => MetadataWithAltItem::Static {
                     path,
@@ -105,7 +105,7 @@ impl AppPageLoaderTreeBuilder {
                 MetadataItem::Dynamic { path } => MetadataWithAltItem::Dynamic { path },
             };
             let mut item = vec![item];
-            item.extend(icon.iter());
+            item.extend(icon.iter().cloned());
             item
         } else {
             icon.clone()
@@ -121,7 +121,7 @@ impl AppPageLoaderTreeBuilder {
             .await?;
 
         if let Some(global_metadata) = global_metadata {
-            self.write_metadata_manifest(global_metadata.manifest)
+            self.write_metadata_manifest(global_metadata.manifest.clone())
                 .await?;
         }
         self.loader_tree_code += "  },";
@@ -254,7 +254,7 @@ impl AppPageLoaderTreeBuilder {
         } else {
             app_page.to_string()
         };
-        let metadata_route = &*get_metadata_route_name((*item).into()).await?;
+        let metadata_route = &*get_metadata_route_name((*item).clone().into()).await?;
         writeln!(
             self.loader_tree_code,
             "{s}  url: fillMetadataSegment({}, await props.params, {}) + \
@@ -355,25 +355,25 @@ impl AppPageLoaderTreeBuilder {
         )
         .await?;
 
-        self.write_modules_entry(AppDirModuleType::Layout, *layout)
+        self.write_modules_entry(AppDirModuleType::Layout, layout.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Error, *error)
+        self.write_modules_entry(AppDirModuleType::Error, error.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Loading, *loading)
+        self.write_modules_entry(AppDirModuleType::Loading, loading.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Template, *template)
+        self.write_modules_entry(AppDirModuleType::Template, template.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::NotFound, *not_found)
+        self.write_modules_entry(AppDirModuleType::NotFound, not_found.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Forbidden, *forbidden)
+        self.write_modules_entry(AppDirModuleType::Forbidden, forbidden.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Unauthorized, *unauthorized)
+        self.write_modules_entry(AppDirModuleType::Unauthorized, unauthorized.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::Page, *page)
+        self.write_modules_entry(AppDirModuleType::Page, page.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::DefaultPage, *default)
+        self.write_modules_entry(AppDirModuleType::DefaultPage, default.clone())
             .await?;
-        self.write_modules_entry(AppDirModuleType::GlobalError, *global_error)
+        self.write_modules_entry(AppDirModuleType::GlobalError, global_error.clone())
             .await?;
 
         let modules_code = replace(&mut self.loader_tree_code, temp_loader_tree_code);
@@ -402,7 +402,7 @@ impl AppPageLoaderTreeBuilder {
         if let Some(global_error) = modules.global_error {
             let module = self
                 .base
-                .process_source(Vc::upcast(FileSource::new(*global_error)))
+                .process_source(Vc::upcast(FileSource::new(global_error)))
                 .to_resolved()
                 .await?;
             self.base.inner_assets.insert(GLOBAL_ERROR.into(), module);
