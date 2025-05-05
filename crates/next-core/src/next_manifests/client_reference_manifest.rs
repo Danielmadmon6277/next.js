@@ -98,8 +98,7 @@ impl ClientReferenceManifest {
                 layout_segment_client_chunks,
                 client_component_ssr_chunks,
             } = &*client_references_chunks.await?;
-            let client_relative_path = &*client_relative_path.clone();
-            let node_root_ref = &*node_root.clone();
+            let node_root_ref = node_root.clone();
             let rsc_app_entry_chunks = &*rsc_app_entry_chunks.await?;
 
             let client_references_ecmascript = client_references
@@ -356,10 +355,10 @@ impl ClientReferenceManifest {
             for (server_component, client_chunks) in layout_segment_client_chunks.iter() {
                 let server_component_name = server_component
                     .server_path()
+                    .await?
                     .with_extension("".into())
                     .to_string()
-                    .owned()
-                    .await?;
+                    .into();
                 let mut entry_css_files_with_chunk = Vec::new();
                 let entry_js_files = entry_manifest
                     .entry_js_files
