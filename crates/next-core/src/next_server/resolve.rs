@@ -215,13 +215,13 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
         let mut request_str = request_str.to_string();
 
         let node_resolve_options = if is_esm {
-            node_esm_resolve_options(lookup_path.root())
+            node_esm_resolve_options((*lookup_path.root().await?).clone())
         } else {
-            node_cjs_resolve_options(lookup_path.root())
+            node_cjs_resolve_options((*lookup_path.root().await?).clone())
         };
         let result_from_original_location = loop {
             let node_resolved_from_original_location = resolve(
-                *lookup_path,
+                lookup_path.clone(),
                 reference_type.clone(),
                 request,
                 node_resolve_options,
