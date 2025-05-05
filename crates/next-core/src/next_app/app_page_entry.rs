@@ -2,7 +2,7 @@ use std::io::Write;
 
 use anyhow::Result;
 use turbo_rcstr::RcStr;
-use turbo_tasks::{fxindexmap, ResolvedVc, Value, ValueToString, Vc};
+use turbo_tasks::{fxindexmap, ResolvedVc, Value, Vc};
 use turbo_tasks_fs::{self, rope::RopeBuilder, File, FileSystemPath};
 use turbopack::ModuleAssetContext;
 use turbopack_core::{
