@@ -855,7 +855,7 @@ async fn insert_next_shared_aliases(
     next_config: Vc<NextConfig>,
     is_runtime_edge: bool,
 ) -> Result<()> {
-    let package_root = next_js_fs().root().to_resolved().await?;
+    let package_root = (*next_js_fs().root().await?).clone();
 
     insert_alias_to_alternatives(
         import_map,
