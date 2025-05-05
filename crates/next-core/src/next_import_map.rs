@@ -227,7 +227,7 @@ pub async fn get_next_client_import_map(
     // see https://github.com/vercel/next.js/blob/8013ef7372fc545d49dbd060461224ceb563b454/packages/next/src/build/webpack-config.ts#L1449-L1531
     insert_exact_alias_map(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         fxindexmap! {
             "server-only" => "next/dist/compiled/server-only/index".to_string(),
             "client-only" => "next/dist/compiled/client-only/index".to_string(),
@@ -272,8 +272,10 @@ pub async fn get_next_client_fallback_import_map(
             app_dir: context_dir,
         } => {
             for (original, alias) in NEXT_ALIASES {
-                import_map
-                    .insert_exact_alias(original, request_to_import_mapping(context_dir, alias));
+                import_map.insert_exact_alias(
+                    original,
+                    request_to_import_mapping(context_dir.clone(), alias),
+                );
             }
         }
         ClientContextType::Fallback => {}
@@ -306,7 +308,7 @@ pub async fn get_next_server_import_map(
 
     insert_alias_option(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         next_config.resolve_alias_options(),
         [],
     )
