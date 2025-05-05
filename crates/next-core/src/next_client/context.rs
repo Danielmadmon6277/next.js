@@ -239,7 +239,7 @@ pub async fn get_client_module_options_context(
     let next_mode = mode.await?;
     let resolve_options_context = get_client_resolve_options_context(
         project_path.clone(),
-        ty,
+        ty.clone(),
         mode,
         next_config,
         *execution_context,
@@ -266,7 +266,7 @@ pub async fn get_client_module_options_context(
     // does by default.
     let conditions = vec!["browser".into(), mode.await?.condition().into()];
     let foreign_enable_webpack_loaders = webpack_loader_options(
-        project_path,
+        project_path.clone(),
         next_config,
         true,
         conditions
@@ -311,7 +311,11 @@ pub async fn get_client_module_options_context(
     next_client_rules.extend(additional_rules);
 
     let postcss_transform_options = PostCssTransformOptions {
-        postcss_package: Some(get_postcss_package_mapping(project_path.clone()).await?),
+        postcss_package: Some(
+            get_postcss_package_mapping(project_path.clone())
+                .to_resolved()
+                .await?,
+        ),
         config_location: PostCssConfigLocation::ProjectPathOrLocalPath,
         ..Default::default()
     };
