@@ -106,7 +106,7 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                 let request_hash = get_request_hash(&query).await?;
                 let qstr = qstring::QString::from(query.as_str());
                 let options_vc = font_options_from_query_map(**query_vc);
-                let font_fallbacks = get_font_fallbacks(lookup_path, options_vc);
+                let font_fallbacks = get_font_fallbacks(lookup_path.clone(), options_vc);
                 let properties = get_font_css_properties(options_vc, font_fallbacks).await;
 
                 if let Err(e) = &properties {
@@ -234,12 +234,12 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                     name.push_str(".p")
                 }
 
-                let font_virtual_path = lookup_path.join(format!("/{}.{}", name, ext).into());
+                let font_virtual_path = lookup_path.join(format!("/{}.{}", name, ext).into())?;
 
                 let font_file = lookup_path.join(path.clone())?.read();
 
                 let font_source =
-                    VirtualSource::new(font_virtual_path, AssetContent::file(font_file))
+                    VirtualSource::new(font_virtual_path.cell(), AssetContent::file(font_file))
                         .to_resolved()
                         .await?;
 
