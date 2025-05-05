@@ -5,7 +5,7 @@ use swc_core::{
     common::FileName,
     ecma::{ast::Program, visit::VisitWith},
 };
-use turbo_tasks::{ResolvedVc, Vc};
+use turbo_tasks::Vc;
 use turbo_tasks_fs::FileSystemPath;
 use turbopack::module_options::ModuleRule;
 use turbopack_ecmascript::{CustomTransformer, TransformContext};
