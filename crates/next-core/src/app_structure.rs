@@ -1240,35 +1240,27 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         // fill in the default modules for the not-found entrypoint
         if modules.layout.is_none() {
             modules.layout = Some(
-                get_next_package(*app_dir)
-                    .join("dist/client/components/default-layout.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .join("dist/client/components/default-layout.js".into())?,
             );
         }
 
         if modules.not_found.is_none() {
             modules.not_found = Some(
-                get_next_package(*app_dir)
-                    .join("dist/client/components/not-found-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .join("dist/client/components/not-found-error.js".into())?,
             );
         }
         if modules.forbidden.is_none() {
             modules.forbidden = Some(
-                get_next_package(*app_dir)
-                    .join("dist/client/components/forbidden-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .join("dist/client/components/forbidden-error.js".into())?,
             );
         }
         if modules.unauthorized.is_none() {
             modules.unauthorized = Some(
-                get_next_package(*app_dir)
-                    .join("dist/client/components/unauthorized-error.js".into())
-                    .to_resolved()
-                    .await?,
+                get_next_package(app_dir.clone())
+                    .join("dist/client/components/unauthorized-error.js".into())?,
             );
         }
 
