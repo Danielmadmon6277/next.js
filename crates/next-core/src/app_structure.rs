@@ -60,14 +60,14 @@ impl AppDirModules {
     fn without_leafs(&self) -> Self {
         Self {
             page: None,
-            layout: self.layout,
-            error: self.error,
-            global_error: self.global_error,
-            loading: self.loading,
-            template: self.template,
-            not_found: self.not_found,
-            forbidden: self.forbidden,
-            unauthorized: self.unauthorized,
+            layout: self.layout.clone(),
+            error: self.error.clone(),
+            global_error: self.global_error.clone(),
+            loading: self.loading.clone(),
+            template: self.template.clone(),
+            not_found: self.not_found.clone(),
+            forbidden: self.forbidden.clone(),
+            unauthorized: self.unauthorized.clone(),
             default: None,
             route: None,
             metadata: self.metadata.clone(),
@@ -76,7 +76,7 @@ impl AppDirModules {
 }
 
 /// A single metadata file plus an optional "alt" text file.
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, TraceRawVcs, NonLocalValue)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, TraceRawVcs, NonLocalValue)]
 pub enum MetadataWithAltItem {
     Static {
         path: FileSystemPath,
@@ -89,17 +89,7 @@ pub enum MetadataWithAltItem {
 
 /// A single metadata file.
 #[derive(
-    Copy,
-    Clone,
-    Debug,
-    Hash,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    TaskInput,
-    TraceRawVcs,
-    NonLocalValue,
+    Clone, Debug, Hash, Serialize, Deserialize, PartialEq, Eq, TaskInput, TraceRawVcs, NonLocalValue,
 )]
 pub enum MetadataItem {
     Static { path: FileSystemPath },
