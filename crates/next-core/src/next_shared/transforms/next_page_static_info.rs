@@ -66,7 +66,7 @@ impl CustomTransformer for NextPageStaticInfo {
             if is_server_layer_page {
                 for warning in collected_exports.warnings.iter() {
                     PageStaticInfoIssue {
-                        file_path: ctx.file_path,
+                        file_path: ctx.file_path.clone(),
                         messages: vec![
                             format!(
                                 "Next.js can't recognize the exported `{}` field in \"{}\" as {}.",
@@ -102,7 +102,7 @@ impl CustomTransformer for NextPageStaticInfo {
                     messages.push("Visit https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config for more information.".to_string());
 
                     PageStaticInfoIssue {
-                        file_path: ctx.file_path,
+                        file_path: ctx.file_path.clone(),
                         messages,
                         severity: IssueSeverity::Warning,
                     }
@@ -116,7 +116,7 @@ impl CustomTransformer for NextPageStaticInfo {
                 && is_app_page
             {
                 PageStaticInfoIssue {
-                    file_path: ctx.file_path,
+                    file_path: ctx.file_path.clone(),
                     messages: vec![format!(r#"Page "{}" cannot use both "use client" and export function "generateStaticParams()"."#, ctx.file_path_str)],
                     severity: IssueSeverity::Error,
                 }
