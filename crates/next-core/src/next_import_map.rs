@@ -1129,10 +1129,10 @@ async fn insert_instrumentation_client_alias(
         import_map,
         "private-next-instrumentation-client",
         vec![
-            request_to_import_mapping(project_path, "./src/instrumentation-client"),
-            request_to_import_mapping(project_path, "./src/instrumentation-client.ts"),
-            request_to_import_mapping(project_path, "./instrumentation-client"),
-            request_to_import_mapping(project_path, "./instrumentation-client.ts"),
+            request_to_import_mapping(project_path.clone(), "./src/instrumentation-client"),
+            request_to_import_mapping(project_path.clone(), "./src/instrumentation-client.ts"),
+            request_to_import_mapping(project_path.clone(), "./instrumentation-client"),
+            request_to_import_mapping(project_path.clone(), "./instrumentation-client.ts"),
             ImportMapping::Ignore.resolved_cell(),
         ],
     );
