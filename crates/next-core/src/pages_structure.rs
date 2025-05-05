@@ -273,7 +273,7 @@ async fn get_pages_structure_for_root_directory(
     let document_item = {
         let document_router_path = next_router_path.join("_document".into())?;
         PagesStructureItem::new(
-            pages_path.join("_document".into()),
+            pages_path.join("_document".into())?,
             page_extensions,
             Some(
                 get_next_package(project_root)
@@ -288,9 +288,13 @@ async fn get_pages_structure_for_root_directory(
     let error_item = {
         let error_router_path = next_router_path.join("_error".into())?;
         PagesStructureItem::new(
-            pages_path.join("_error".into()),
+            pages_path.join("_error".into())?,
             page_extensions,
-            Some(get_next_package(project_root).join("error.js".into())),
+            Some(
+                get_next_package(project_root)
+                    .await?
+                    .join("error.js".into())?,
+            ),
             error_router_path,
             error_router_path,
         )
