@@ -1708,7 +1708,7 @@ impl Project {
     #[turbo_tasks::function]
     pub async fn server_changed(self: Vc<Self>, roots: Vc<OutputAssets>) -> Result<Vc<Completion>> {
         let path = (*self.node_root().await?).clone();
-        Ok(any_output_changed(roots, path, true).await?)
+        Ok(any_output_changed(roots, path, true))
     }
 
     /// Completion when client side changes are detected in output assets
@@ -1716,7 +1716,7 @@ impl Project {
     #[turbo_tasks::function]
     pub async fn client_changed(self: Vc<Self>, roots: Vc<OutputAssets>) -> Result<Vc<Completion>> {
         let path = (*self.client_root().await?).clone();
-        Ok(any_output_changed(roots, path, false).await?)
+        Ok(any_output_changed(roots, path, false))
     }
 
     #[turbo_tasks::function]
@@ -1802,7 +1802,6 @@ async fn any_output_changed(
     path: FileSystemPath,
     server: bool,
 ) -> Result<Vc<Completion>> {
-    let path = &*path;
     let completions = AdjacencyMap::new()
         .skip_duplicates()
         .visit(roots.await?.iter().copied(), get_referenced_output_assets)
@@ -1810,15 +1809,19 @@ async fn any_output_changed(
         .completed()?
         .into_inner()
         .into_postorder_topological()
-        .map(|m| async move {
-            let asset_path = m.path().await?;
-            if !asset_path.path.ends_with(".map")
-                && (!server || !asset_path.path.ends_with(".css"))
-                && asset_path.is_inside_ref(path)
-            {
-                anyhow::Ok(Some(content_changed(*ResolvedVc::upcast(m))))
-            } else {
-                Ok(None)
+        .map(|m| {
+            let path = path.clone();
+
+            async move {
+                let asset_path = m.path().await?;
+                if !asset_path.path.ends_with(".map")
+                    && (!server || !asset_path.path.ends_with(".css"))
+                    && asset_path.is_inside_ref(&path)
+                {
+                    anyhow::Ok(Some(content_changed(*ResolvedVc::upcast(m))))
+                } else {
+                    Ok(None)
+                }
             }
         })
         .map(|v| async move {
