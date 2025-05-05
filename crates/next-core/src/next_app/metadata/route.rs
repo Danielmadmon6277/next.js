@@ -208,7 +208,7 @@ async fn dynamic_text_route_source(path: FileSystemPath) -> Result<Vc<Box<dyn So
     let stem = stem.as_deref().unwrap_or_default();
     let ext = &*path.extension();
 
-    let content_type = get_content_type(path).await?;
+    let content_type = get_content_type(path.clone()).await?;
 
     // refer https://github.com/vercel/next.js/blob/7b2b9823432fb1fa28ae0ac3878801d638d93311/packages/next/src/build/webpack/loaders/next-metadata-route-loader.ts#L84
     // for the original template.
