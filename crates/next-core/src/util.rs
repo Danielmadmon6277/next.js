@@ -56,14 +56,14 @@ pub async fn pathname_for_path(
     server_path: FileSystemPath,
     path_ty: PathType,
 ) -> Result<Vc<RcStr>> {
-    let server_path_value = &*server_path.await?;
-    let path = if let Some(path) = server_root.await?.get_path_to(server_path_value) {
+    let server_path_value = server_path.clone();
+    let path = if let Some(path) = server_root.clone().get_path_to(server_path_value) {
         path
     } else {
         bail!(
             "server_path ({}) is not in server_root ({})",
-            server_path.to_string().await?,
-            server_root.to_string().await?
+            server_path.to_string(),
+            server_root.to_string()
         )
     };
     let path = match (path_ty, path) {
