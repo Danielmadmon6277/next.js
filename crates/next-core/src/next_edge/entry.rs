@@ -14,7 +14,7 @@ pub async fn wrap_edge_entry(
     project_root: FileSystemPath,
     entry: ResolvedVc<Box<dyn Module>>,
     pathname: RcStr,
-) -> Vc<Box<dyn Module>> {
+) -> Result<Vc<Box<dyn Module>>> {
     // The wrapped module could be an async module, we handle that with the proxy
     // here. The comma expression makes sure we don't call the function with the
     // module as the "this" arg.
@@ -45,7 +45,7 @@ pub async fn wrap_edge_entry(
 
     // TODO(alexkirsz) Figure out how to name this virtual asset.
     let virtual_source = VirtualSource::new(
-        project_root.join("edge-wrapper.js".into()),
+        project_root.join("edge-wrapper.js".into())?.cell(),
         AssetContent::file(file.into()),
     );
 
@@ -53,10 +53,10 @@ pub async fn wrap_edge_entry(
         "MODULE".into() => entry
     };
 
-    asset_context
+    Ok(asset_context
         .process(
             Vc::upcast(virtual_source),
             Value::new(ReferenceType::Internal(ResolvedVc::cell(inner_assets))),
         )
-        .module()
+        .module())
 }
