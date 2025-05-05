@@ -400,7 +400,7 @@ pub async fn get_next_edge_import_map(
     // Alias next/dist imports to next/dist/esm assets
     insert_wildcard_alias_map(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         fxindexmap! {
             "next/dist/build/" => "next/dist/esm/build/*".to_string(),
             "next/dist/client/" => "next/dist/esm/client/*".to_string(),
@@ -415,7 +415,7 @@ pub async fn get_next_edge_import_map(
     // Alias the usage of next public APIs
     insert_exact_alias_map(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         fxindexmap! {
             "next/app" => "next/dist/api/app".to_string(),
             "next/document" => "next/dist/api/document".to_string(),
@@ -439,7 +439,7 @@ pub async fn get_next_edge_import_map(
 
     insert_next_shared_aliases(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         execution_context,
         next_config,
         true,
@@ -490,7 +490,7 @@ pub async fn get_next_edge_import_map(
     insert_next_server_special_aliases(
         &mut import_map,
         project_path,
-        ty,
+        ty.clone(),
         NextRuntime::Edge,
         next_config,
     )
