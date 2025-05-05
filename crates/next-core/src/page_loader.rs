@@ -145,8 +145,8 @@ impl OutputAsset for PageLoaderAsset {
         let root = self
             .rebase_prefix_path
             .await?
-            .clone()
-            .map_or(self.server_root.clone(), |path| path);
+            .as_ref()
+            .map_or(self.server_root.clone(), |path| path.clone());
         Ok(root
             .join(
                 format!(
