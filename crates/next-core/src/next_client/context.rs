@@ -211,8 +211,7 @@ pub async fn get_client_resolve_options_context(
             .await?
             .as_ref()
             .map(|p| project_path.join(p.to_owned()))
-            .to_resolved()
-            .await?,
+            .transpose()?,
         rules: vec![(
             foreign_code_context_condition(next_config, project_path).await?,
             resolve_options_context.clone().resolved_cell(),
