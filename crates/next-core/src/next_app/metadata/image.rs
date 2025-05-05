@@ -33,7 +33,7 @@ async fn hash_file_content(path: FileSystemPath) -> Result<u64> {
             hash_xxh3_hash64(&*content)
         }
         FileContent::NotFound => {
-            bail!("metadata file not found: {}", &path.to_string().await?);
+            bail!("metadata file not found: {}", &path.to_string());
         }
     })
 }
@@ -45,11 +45,11 @@ pub async fn dynamic_image_metadata_source(
     ty: RcStr,
     page: AppPage,
 ) -> Result<Vc<Box<dyn Source>>> {
-    let stem = path.file_stem().await?;
+    let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
     let ext = &*path.extension().await?;
 
-    let hash_query = format!("?{:x}", hash_file_content(path).await?);
+    let hash_query = format!("?{:x}", hash_file_content(path));
 
     let use_numeric_sizes = ty == "twitter" || ty == "openGraph";
     let sizes = if use_numeric_sizes {
@@ -135,7 +135,9 @@ pub async fn dynamic_image_metadata_source(
 
     let file = File::from(code);
     let source = VirtualSource::new(
-        path.parent().join(format!("{stem}--metadata.js").into()),
+        path.parent()
+            .join(format!("{stem}--metadata.js").into())?
+            .cell(),
         AssetContent::file(file.into()),
     );
 
