@@ -1070,11 +1070,11 @@ pub async fn get_server_chunking_context(
     // support both production and development modes.
     let mut builder = NodeJsChunkingContext::builder(
         root_path,
-        node_root,
+        node_root.clone(),
         node_root_to_root_path,
-        node_root,
-        node_root.join("server/chunks".into()).to_resolved().await?,
-        node_root.join("server/assets".into()).to_resolved().await?,
+        node_root.clone(),
+        node_root.join("server/chunks".into())?,
+        node_root.join("server/assets".into())?,
         environment,
         next_mode.runtime_type(),
     )
