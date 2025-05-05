@@ -176,7 +176,7 @@ impl AppProject {
     async fn route_ty(self: Vc<Self>) -> Result<Vc<ServerContextType>> {
         let this = self.await?;
         Ok(ServerContextType::AppRoute {
-            app_dir: this.app_dir,
+            app_dir: this.app_dir.clone(),
             ecmascript_client_reference_transition_name: Some(
                 self.client_transition_name().to_resolved().await?,
             ),
@@ -187,7 +187,7 @@ impl AppProject {
     #[turbo_tasks::function]
     fn ssr_ty(&self) -> Vc<ServerContextType> {
         ServerContextType::AppSSR {
-            app_dir: self.app_dir,
+            app_dir: self.app_dir.clone(),
         }
         .cell()
     }
@@ -819,7 +819,7 @@ impl AppProject {
         let client_main_module = cjs_resolve(
             Vc::upcast(PlainResolveOrigin::new(
                 client_module_context,
-                self.project().project_path().join("_".into()),
+                self.project().project_path().join("_".into())?,
             )),
             Request::parse(Value::new(Pattern::Constant(
                 "next/dist/client/app-next-turbopack.js".into(),
