@@ -34,7 +34,7 @@ pub async fn create_page_loader_entry_module(
         StringifyJs(&*pathname.await?)
     )?;
 
-    let page_loader_path = next_js_file_path("entry/page-loader.ts".into()).await?;
+    let page_loader_path = (*next_js_file_path("entry/page-loader.ts".into()).await?).clone();
     let base_code = page_loader_path.read();
     if let FileContent::Content(base_file) = &*base_code.await? {
         result += base_file.content()
@@ -45,7 +45,7 @@ pub async fn create_page_loader_entry_module(
     let file = File::from(result.build());
 
     let virtual_source = Vc::upcast(VirtualSource::new(
-        page_loader_path,
+        page_loader_path.cell(),
         AssetContent::file(file.into()),
     ));
 
@@ -145,14 +145,17 @@ impl OutputAsset for PageLoaderAsset {
         let root = self
             .rebase_prefix_path
             .await?
+            .clone()
             .map_or(self.server_root.clone(), |path| path);
-        Ok(root.join(
-            format!(
-                "static/chunks/pages{}",
-                get_asset_path_from_pathname(&self.pathname.await?, ".js")
-            )
-            .into(),
-        ))
+        Ok(root
+            .join(
+                format!(
+                    "static/chunks/pages{}",
+                    get_asset_path_from_pathname(&self.pathname.await?, ".js")
+                )
+                .into(),
+            )?
+            .cell())
     }
 
     #[turbo_tasks::function]
