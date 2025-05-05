@@ -98,7 +98,7 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
 
         match request_key.as_str() {
             "next/font/local/target.css" => {
-                if !can_use_next_font(*this.root, **query_vc).await? {
+                if !can_use_next_font(this.root.clone(), **query_vc).await? {
                     return Ok(ResolveResultOption::none());
                 }
 
@@ -236,7 +236,7 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
 
                 let font_virtual_path = lookup_path.join(format!("/{}.{}", name, ext).into());
 
-                let font_file = lookup_path.join(path.clone()).read();
+                let font_file = lookup_path.join(path.clone())?.read();
 
                 let font_source =
                     VirtualSource::new(font_virtual_path, AssetContent::file(font_file))
