@@ -235,7 +235,7 @@ pub async fn get_server_resolve_options_context(
         .to_resolved()
         .await?;
     let next_node_shared_runtime_plugin =
-        NextNodeSharedRuntimeResolvePlugin::new(project_path.clone(), Value::new(ty))
+        NextNodeSharedRuntimeResolvePlugin::new(project_path.clone(), Value::new(ty.clone()))
             .to_resolved()
             .await?;
 
@@ -443,10 +443,10 @@ pub async fn get_server_module_options_context(
     .await?;
 
     let foreign_code_context_condition =
-        foreign_code_context_condition(next_config, project_path).await?;
+        foreign_code_context_condition(next_config, project_path.clone()).await?;
     let postcss_transform_options = PostCssTransformOptions {
         postcss_package: Some(
-            get_postcss_package_mapping(*project_path)
+            get_postcss_package_mapping(project_path.clone())
                 .to_resolved()
                 .await?,
         ),
