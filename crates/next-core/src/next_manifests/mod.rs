@@ -454,23 +454,34 @@ impl AppBuildManifest {
         let pages: Vec<(RcStr, Vec<RcStr>)> = self
             .pages
             .iter()
-            .map(|(k, chunks)| async move {
-                Ok((
-                    k.clone(),
-                    chunks
-                        .await?
-                        .iter()
-                        .copied()
-                        .map(|chunk| async move {
-                            let chunk_path = chunk.path().await?;
-                            Ok(client_relative_path_ref
-                                .get_path_to(&chunk_path)
-                                .context("client chunk entry path must be inside the client root")?
-                                .into())
-                        })
-                        .try_join()
-                        .await?,
-                ))
+            .map(|(k, chunks)| {
+                let client_relative_path_ref = client_relative_path_ref.clone();
+
+                async move {
+                    Ok((
+                        k.clone(),
+                        chunks
+                            .await?
+                            .iter()
+                            .copied()
+                            .map(|chunk| {
+                                let client_relative_path_ref = client_relative_path_ref.clone();
+
+                                async move {
+                                    let chunk_path = chunk.path().await?;
+                                    Ok(client_relative_path_ref
+                                        .get_path_to(&chunk_path)
+                                        .context(
+                                            "client chunk entry path must be inside the client \
+                                             root",
+                                        )?
+                                        .into())
+                                }
+                            })
+                            .try_join()
+                            .await?,
+                    ))
+                }
             })
             .try_join()
             .await?;
