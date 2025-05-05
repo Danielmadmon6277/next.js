@@ -351,8 +351,8 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
                 )]);
             }
         }
-        let path = result.ident().path().resolve().await?;
-        let file_type = get_file_type(path, &*path.await?).await?;
+        let path = (*result.ident().path().await?).clone();
+        let file_type = get_file_type(path.clone(), &path).await?;
 
         let external_type = match (file_type, is_esm) {
             (FileType::UnsupportedExtension, _) => {
