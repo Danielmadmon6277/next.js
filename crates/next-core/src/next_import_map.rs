@@ -1074,14 +1074,14 @@ fn export_value_to_import_mapping(
         None
     } else {
         Some(if result.len() == 1 {
-            ImportMapping::PrimaryAlternative(result[0].0.into(), Some(project_path))
+            ImportMapping::PrimaryAlternative(result[0].0.into(), Some(project_path.clone()))
                 .resolved_cell()
         } else {
             ImportMapping::Alternatives(
                 result
                     .iter()
                     .map(|(m, _)| {
-                        ImportMapping::PrimaryAlternative((*m).into(), Some(project_path))
+                        ImportMapping::PrimaryAlternative((*m).into(), Some(project_path.clone()))
                             .resolved_cell()
                     })
                     .collect(),
@@ -1097,7 +1097,10 @@ fn insert_exact_alias_map(
     map: FxIndexMap<&'static str, String>,
 ) {
     for (pattern, request) in map {
-        import_map.insert_exact_alias(pattern, request_to_import_mapping(project_path, &request));
+        import_map.insert_exact_alias(
+            pattern,
+            request_to_import_mapping(project_path.clone(), &request),
+        );
     }
 }
 
@@ -1107,8 +1110,10 @@ fn insert_wildcard_alias_map(
     map: FxIndexMap<&'static str, String>,
 ) {
     for (pattern, request) in map {
-        import_map
-            .insert_wildcard_alias(pattern, request_to_import_mapping(project_path, &request));
+        import_map.insert_wildcard_alias(
+            pattern,
+            request_to_import_mapping(project_path.clone(), &request),
+        );
     }
 }
 
@@ -1137,10 +1142,7 @@ async fn insert_turbopack_dev_alias(import_map: &mut ImportMap) -> Result<()> {
     insert_package_alias(
         import_map,
         "@vercel/turbopack-ecmascript-runtime/",
-        turbopack_ecmascript_runtime::embed_fs()
-            .root()
-            .to_resolved()
-            .await?,
+        (*turbopack_ecmascript_runtime::embed_fs().root().await?).clone(),
     );
     Ok(())
 }
