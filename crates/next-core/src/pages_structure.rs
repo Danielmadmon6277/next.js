@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tracing::Instrument;
 use turbo_rcstr::RcStr;
-use turbo_tasks::{OptionVcExt, ResolvedVc, TryJoinIterExt, ValueToString, Vc};
+use turbo_tasks::{OptionVcExt, ResolvedVc, TryJoinIterExt, Vc};
 use turbo_tasks_fs::{
     DirectoryContent, DirectoryEntry, FileSystemEntryType, FileSystemPath, FileSystemPathOption,
 };
@@ -164,7 +164,7 @@ async fn get_pages_structure_for_root_directory(
                                 let item_next_router_path = next_router_path_for_basename(
                                     next_router_path.clone(),
                                     basename,
-                                );
+                                )?;
                                 let item_original_path = next_router_path.join(basename.into())?;
                                 let item = PagesStructureItem::new(
                                     base_path,
@@ -183,7 +183,7 @@ async fn get_pages_structure_for_root_directory(
                                 let item_next_router_path = next_router_path_for_basename(
                                     next_router_path.clone(),
                                     basename,
-                                );
+                                )?;
                                 let item_original_path = next_router_path.join(basename.into())?;
                                 items.push((
                                     basename,
@@ -342,7 +342,7 @@ async fn get_pages_structure_for_directory(
                             continue;
                         };
                         let item_next_router_path = match basename {
-                            "index" => next_router_path,
+                            "index" => next_router_path.clone(),
                             _ => next_router_path.join(basename.into())?,
                         };
                         let base_path = project_path.join(name.clone())?;
@@ -381,8 +381,8 @@ async fn get_pages_structure_for_directory(
         children.sort_by_key(|(k, _)| *k);
 
         Ok(PagesDirectoryStructure {
-            project_path: project_path.to_resolved().await?,
-            next_router_path: next_router_path.to_resolved().await?,
+            project_path: project_path.clone(),
+            next_router_path: next_router_path.clone(),
             items: items
                 .into_iter()
                 .map(|(_, v)| v)
@@ -411,9 +411,9 @@ fn page_basename<'a>(name: &'a str, page_extensions: &'a [RcStr]) -> Option<&'a 
 fn next_router_path_for_basename(
     next_router_path: FileSystemPath,
     basename: &str,
-) -> FileSystemPath {
+) -> Result<FileSystemPath> {
     if basename == "index" {
-        next_router_path
+        Ok(next_router_path)
     } else {
         next_router_path.join(basename.into())
     }
