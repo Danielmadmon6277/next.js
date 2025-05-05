@@ -65,7 +65,7 @@ impl AttachedFileSystem {
                 .cell()),
             _ => bail!(
                 "path {} not part of self, the root fs or the child fs",
-                contained_path.to_string()
+                contained_path.value_to_string().await?
             ),
         }
     }
