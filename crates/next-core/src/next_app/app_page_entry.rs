@@ -174,7 +174,7 @@ async fn wrap_edge_page(
 
     let source = load_next_js_template(
         "edge-ssr-app.js",
-        project_root,
+        project_root.clone(),
         fxindexmap! {
             "VAR_USERLAND" => INNER.into(),
             "VAR_PAGE" => page.to_string().into(),
