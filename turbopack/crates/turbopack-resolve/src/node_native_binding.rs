@@ -251,7 +251,7 @@ impl ModuleReference for NodeGypBuildReference {
 impl ValueToString for NodeGypBuildReference {
     #[turbo_tasks::function]
     async fn to_string(&self) -> Result<Vc<RcStr>> {
-        let context_dir = self.context_dir.to_string();
+        let context_dir = self.context_dir.value_to_string().await?;
         let compile_target = self.compile_target.await?;
         Ok(Vc::cell(
             format!("node-gyp in {} for {}", context_dir, compile_target).into(),
