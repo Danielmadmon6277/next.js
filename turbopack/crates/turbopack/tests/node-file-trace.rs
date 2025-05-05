@@ -462,7 +462,7 @@ fn node_file_trace<B: Backend + 'static>(
                     .await?;
 
                 #[cfg(not(feature = "bench_against_node_nft"))]
-                let output_path = rebased.path();
+                let output_path = (*rebased.path().await?).clone();
 
                 print_graph(ResolvedVc::upcast(rebased)).await?;
 
@@ -596,11 +596,11 @@ impl Display for CommandOutput {
 async fn exec_node(directory: RcStr, path: FileSystemPath) -> Result<Vc<CommandOutput>> {
     let mut cmd = Command::new("node");
 
-    let p = path.await?;
+    let p = path.clone();
     let f = Path::new(&directory).join(&p.path);
     let dir = f.parent().unwrap();
     println!("[CWD]: {}", dir.display());
-    let label = path.to_string().await?;
+    let label = path.to_string();
 
     if p.path.contains("mdx") {
         cmd.arg("--experimental-loader=@mdx-js/node-loader")
