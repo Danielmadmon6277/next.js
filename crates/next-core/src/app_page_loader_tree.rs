@@ -53,7 +53,7 @@ impl AppPageLoaderTreeBuilder {
     ) -> Result<()> {
         if let Some(path) = path {
             if matches!(module_type, AppDirModuleType::Page) {
-                self.pages.push(path);
+                self.pages.push(path.clone());
             }
 
             let tuple_code = self
@@ -180,8 +180,8 @@ impl AppPageLoaderTreeBuilder {
                     app_page,
                     name,
                     item,
-                    **path,
-                    alt_path.as_deref().copied(),
+                    path.clone(),
+                    alt_path.as_ref().cloned(),
                 )
                 .await?;
             }
@@ -196,7 +196,7 @@ impl AppPageLoaderTreeBuilder {
 
                 let source = dynamic_image_metadata_source(
                     *ResolvedVc::upcast(self.base.module_asset_context),
-                    **path,
+                    path.clone(),
                     name.into(),
                     app_page.clone(),
                 );
