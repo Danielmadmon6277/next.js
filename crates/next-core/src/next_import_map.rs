@@ -587,14 +587,17 @@ async fn insert_next_server_special_aliases(
 
     import_map.insert_exact_alias(
         "next/dist/compiled/@vercel/og/index.node.js",
-        external_esm_if_node(project_path, "next/dist/compiled/@vercel/og/index.node.js"),
+        external_esm_if_node(
+            project_path.clone(),
+            "next/dist/compiled/@vercel/og/index.node.js",
+        ),
     );
 
     import_map.insert_exact_alias(
         "next/dist/server/ReactDOMServerPages",
         ImportMapping::Alternatives(vec![
-            request_to_import_mapping(project_path, "react-dom/server.edge"),
-            request_to_import_mapping(project_path, "react-dom/server.browser"),
+            request_to_import_mapping(project_path.clone(), "react-dom/server.edge"),
+            request_to_import_mapping(project_path.clone(), "react-dom/server.browser"),
         ])
         .resolved_cell(),
     );
@@ -603,8 +606,11 @@ async fn insert_next_server_special_aliases(
         "@opentelemetry/api",
         // It needs to prefer the local version of @opentelemetry/api
         ImportMapping::Alternatives(vec![
-            external_cjs_if_node(project_path, "@opentelemetry/api"),
-            external_cjs_if_node(project_path, "next/dist/compiled/@opentelemetry/api"),
+            external_cjs_if_node(project_path.clone(), "@opentelemetry/api"),
+            external_cjs_if_node(
+                project_path.clone(),
+                "next/dist/compiled/@opentelemetry/api",
+            ),
         ])
         .resolved_cell(),
     );
@@ -626,10 +632,24 @@ async fn insert_next_server_special_aliases(
                 request_to_import_mapping(next_package, "styled-jsx/*"),
             );
 
-            rsc_aliases(import_map, project_path, ty, runtime, next_config).await?;
+            rsc_aliases(
+                import_map,
+                project_path.clone(),
+                ty.clone(),
+                runtime,
+                next_config,
+            )
+            .await?;
         }
         ServerContextType::Middleware { .. } | ServerContextType::Instrumentation { .. } => {
-            rsc_aliases(import_map, project_path, ty, runtime, next_config).await?;
+            rsc_aliases(
+                import_map,
+                project_path.clone(),
+                ty.clone(),
+                runtime,
+                next_config,
+            )
+            .await?;
         }
     }
 
