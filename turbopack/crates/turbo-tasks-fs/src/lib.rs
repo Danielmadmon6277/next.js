@@ -1312,8 +1312,8 @@ impl FileSystemPath {
         *self.fs
     }
 
-    pub fn extension(&self) -> Vc<RcStr> {
-        Vc::cell(self.extension_ref().unwrap_or("").into())
+    pub fn extension(&self) -> RcStr {
+        self.extension_ref().unwrap_or("").into()
     }
 
     pub async fn is_inside(&self, other: FileSystemPath) -> Result<Vc<bool>> {
