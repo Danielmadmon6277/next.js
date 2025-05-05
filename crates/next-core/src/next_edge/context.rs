@@ -110,7 +110,7 @@ pub async fn get_edge_resolve_options_context(
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<ResolveOptionsContext>> {
     let next_edge_import_map =
-        get_next_edge_import_map(*project_path, ty, next_config, execution_context)
+        get_next_edge_import_map(project_path.clone(), ty, next_config, execution_context)
             .to_resolved()
             .await?;
 
@@ -223,7 +223,7 @@ pub async fn get_edge_chunking_context_with_client_assets(
     turbo_source_maps: Vc<bool>,
     no_mangling: Vc<bool>,
 ) -> Result<Vc<Box<dyn ChunkingContext>>> {
-    let output_root = node_root.join("server/edge".into()).to_resolved().await?;
+    let output_root = node_root.join("server/edge".into())?;
     let next_mode = mode.await?;
     let mut builder = BrowserChunkingContext::builder(
         root_path,
@@ -231,10 +231,7 @@ pub async fn get_edge_chunking_context_with_client_assets(
         output_root_to_root_path,
         client_root,
         output_root.join("chunks/ssr".into()).to_resolved().await?,
-        client_root
-            .join("static/media".into())
-            .to_resolved()
-            .await?,
+        client_root.join("static/media".into())?,
         environment,
         next_mode.runtime_type(),
     )
