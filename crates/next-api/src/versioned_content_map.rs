@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 use turbo_rcstr::RcStr;
 use turbo_tasks::{
     debug::ValueDebugFormat, trace::TraceRawVcs, FxIndexSet, NonLocalValue, OperationValue,
-    OperationVc, ResolvedVc, State, TryFlatJoinIterExt, TryJoinIterExt, ValueDefault,
-    ValueToString, Vc,
+    OperationVc, ResolvedVc, State, TryFlatJoinIterExt, TryJoinIterExt, ValueDefault, Vc,
 };
 use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
@@ -194,14 +193,14 @@ impl VersionedContentMap {
                 generate_source_map.generate_source_map()
             })
         } else {
-            let path = path.to_string().await?;
+            let path = path.to_string();
             bail!("no source map for path {}", path);
         }
     }
 
     #[turbo_tasks::function]
     pub async fn get_asset(self: Vc<Self>, path: FileSystemPath) -> Result<Vc<OptionOutputAsset>> {
-        let result = self.raw_get(*path).await?;
+        let result = self.raw_get(path.clone()).await?;
         if let Some(MapEntry {
             assets_operation: _,
             path_to_asset,
@@ -282,8 +281,8 @@ fn compute_entry_operation(
 ) -> Vc<OptionMapEntry> {
     map.compute_entry(
         assets_operation,
-        *node_root,
-        *client_relative_path,
-        *client_output_path,
+        node_root.clone(),
+        client_relative_path.clone(),
+        client_output_path.clone(),
     )
 }
