@@ -168,7 +168,7 @@ impl ImportMappingReplacement for NextFontGoogleReplacer {
         };
 
         let this = &*self.await?;
-        if can_use_next_font(*this.project_path, **query).await? {
+        if can_use_next_font(this.project_path.clone(), **query).await? {
             Ok(self.import_map_result(query.await?.as_str().into()))
         } else {
             Ok(ImportMapResult::NoEntry.into())
@@ -686,7 +686,7 @@ async fn get_mock_stylesheet(
     let root = mock_fs.root();
     let val = evaluate(
         mocked_response_asset,
-        root,
+        root.clone(),
         *env,
         AssetIdent::from_path(loader_path),
         asset_context,
