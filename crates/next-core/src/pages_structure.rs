@@ -45,7 +45,7 @@ impl PagesStructureItem {
     }
 
     #[turbo_tasks::function]
-    pub async fn file_path(&self) -> Result<FileSystemPath> {
+    pub async fn file_path(&self) -> Result<Vc<FileSystemPath>> {
         // Check if the file path + extension exists in the filesystem, if so use that. If not fall
         // back to the base path.
         for ext in self.extensions.await?.into_iter() {
@@ -91,8 +91,8 @@ impl PagesDirectoryStructure {
     /// Returns the path to the directory of this structure in the project file
     /// system.
     #[turbo_tasks::function]
-    pub fn project_path(&self) -> FileSystemPath {
-        *self.project_path
+    pub fn project_path(&self) -> Vc<FileSystemPath> {
+        self.project_path.clone().cell()
     }
 }
 
