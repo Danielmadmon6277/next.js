@@ -900,7 +900,7 @@ async fn insert_next_shared_aliases(
     import_map.insert_alias(
         AliasPattern::exact("@vercel/turbopack-next/internal/font/google/cssmodule.module.css"),
         ImportMapping::Dynamic(ResolvedVc::upcast(
-            NextFontGoogleCssModuleReplacer::new(*project_path, execution_context)
+            NextFontGoogleCssModuleReplacer::new(project_path.clone(), execution_context)
                 .to_resolved()
                 .await?,
         ))
@@ -910,19 +910,19 @@ async fn insert_next_shared_aliases(
     import_map.insert_alias(
         AliasPattern::exact(GOOGLE_FONTS_INTERNAL_PREFIX),
         ImportMapping::Dynamic(ResolvedVc::upcast(
-            NextFontGoogleFontFileReplacer::new(*project_path)
+            NextFontGoogleFontFileReplacer::new(project_path.clone())
                 .to_resolved()
                 .await?,
         ))
         .resolved_cell(),
     );
 
-    let next_package = get_next_package(*project_path).to_resolved().await?;
-    import_map.insert_singleton_alias("@swc/helpers", next_package);
-    import_map.insert_singleton_alias("styled-jsx", next_package);
-    import_map.insert_singleton_alias("next", project_path);
-    import_map.insert_singleton_alias("react", project_path);
-    import_map.insert_singleton_alias("react-dom", project_path);
+    let next_package = (*get_next_package(project_path.clone()).await?).clone();
+    import_map.insert_singleton_alias("@swc/helpers", next_package.clone());
+    import_map.insert_singleton_alias("styled-jsx", next_package.clone());
+    import_map.insert_singleton_alias("next", project_path.clone());
+    import_map.insert_singleton_alias("react", project_path.clone());
+    import_map.insert_singleton_alias("react-dom", project_path.clone());
     let react_client_package = get_react_client_package(next_config).await?;
     import_map.insert_exact_alias(
         "react-dom/client",
