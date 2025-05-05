@@ -445,11 +445,11 @@ pub async fn get_client_chunking_context(
     let next_mode = mode.await?;
     let mut builder = BrowserChunkingContext::builder(
         root_path,
-        client_root,
+        client_root.clone(),
         client_root_to_root_path,
-        client_root,
+        client_root.clone(),
         client_root.join("static/chunks".into())?,
-        (*get_client_assets_path(*client_root).to_resolved().await?).clone(),
+        (*get_client_assets_path(client_root.clone()).await?).clone(),
         environment,
         next_mode.runtime_type(),
     )
@@ -512,7 +512,7 @@ pub async fn get_client_runtime_entries(
     let mut runtime_entries = vec![];
     let resolve_options_context = get_client_resolve_options_context(
         project_root.clone(),
-        ty,
+        ty.clone(),
         mode,
         next_config,
         execution_context,
@@ -535,7 +535,7 @@ pub async fn get_client_runtime_entries(
         };
     }
 
-    if matches!(*ty, ClientContextType::App { .. },) {
+    if matches!(&*ty, ClientContextType::App { .. },) {
         runtime_entries.push(
             RuntimeEntry::Request(
                 Request::parse(Value::new(Pattern::Constant(
