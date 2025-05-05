@@ -59,12 +59,13 @@ impl NftJsonAsset {
 #[turbo_tasks::value_impl]
 impl OutputAsset for NftJsonAsset {
     #[turbo_tasks::function]
-    async fn path(&self) -> Result<FileSystemPath> {
+    async fn path(&self) -> Result<Vc<FileSystemPath>> {
         let path = self.chunk.path().await?;
         Ok(path
             .fs
             .root()
-            .join(format!("{}.nft.json", path.path).into()))
+            .join(format!("{}.nft.json", path.path).into())?
+            .cell())
     }
 }
 
