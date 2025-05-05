@@ -191,7 +191,7 @@ pub async fn get_app_client_references_chunks(
 
                 let server_path = server_component.server_path().await?;
                 let is_layout = server_path.file_stem().as_deref() == Some("layout");
-                let server_component_path = server_path.to_string();
+                let server_component_path = server_path.value_to_string().await?;
 
                 let ssr_modules = client_reference_types
                     .iter()

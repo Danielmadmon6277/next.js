@@ -193,7 +193,7 @@ impl VersionedContentMap {
                 generate_source_map.generate_source_map()
             })
         } else {
-            let path = path.to_string();
+            let path = path.value_to_string().await?;
             bail!("no source map for path {}", path);
         }
     }
