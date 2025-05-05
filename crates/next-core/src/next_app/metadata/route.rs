@@ -258,7 +258,7 @@ async fn dynamic_site_map_route_source(
     path: FileSystemPath,
     is_multi_dynamic: bool,
 ) -> Result<Vc<Box<dyn Source>>> {
-    let stem = path.file_stem().await?;
+    let stem = path.file_stem();
     let stem = stem.as_deref().unwrap_or_default();
     let ext = &*path.extension().await?;
     let content_type = get_content_type(path).await?;
