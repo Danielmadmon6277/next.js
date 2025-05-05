@@ -514,11 +514,8 @@ pub async fn get_client_runtime_entries(
         // functions to be available.
         if let Some(request) = enable_react_refresh {
             runtime_entries.push(
-                RuntimeEntry::Request(
-                    request.to_resolved().await?,
-                    project_root.join("_".into()).to_resolved().await?,
-                )
-                .resolved_cell(),
+                RuntimeEntry::Request(request.to_resolved().await?, project_root.join("_".into())?)
+                    .resolved_cell(),
             )
         };
     }
@@ -531,7 +528,7 @@ pub async fn get_client_runtime_entries(
                 )))
                 .to_resolved()
                 .await?,
-                project_root.join("_".into()).to_resolved().await?,
+                project_root.join("_".into())?,
             )
             .resolved_cell(),
         );
