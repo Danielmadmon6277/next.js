@@ -203,7 +203,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
         let unable_to_externalize = |reason: Vec<StyledString>| {
             if must_be_external {
                 ExternalizeIssue {
-                    file_path: lookup_path,
+                    file_path: lookup_path.clone(),
                     package: package.clone(),
                     request_str: request_str.clone(),
                     reason,
@@ -285,7 +285,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
                 result_from_original_location.ident().path().await?.parent(),
                 package_json(),
             );
-            let FindContextFileResult::Found(package_json_file, _) = *package_json_file.await?
+            let FindContextFileResult::Found(package_json_file, _) = &*package_json_file.await?
             else {
                 return unable_to_externalize(vec![StyledString::Text(
                     "The package.json of the package resolved from the project directory can't be \
@@ -294,7 +294,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
                 )]);
             };
             let FindContextFileResult::Found(package_json_from_original_location, _) =
-                *package_json_from_original_location.await?
+                &*package_json_from_original_location.await?
             else {
                 return unable_to_externalize(vec![StyledString::Text(
                     "The package.json of the package can't be found.".into(),
@@ -382,7 +382,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
                 );
                 let resolves_equal = if let Some(result) = *node_resolved.first_source().await? {
                     let cjs_path = result.ident().path();
-                    cjs_path.resolve().await? == path
+                    (*cjs_path.await?) == path
                 } else {
                     false
                 };
