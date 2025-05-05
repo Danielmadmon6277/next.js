@@ -430,7 +430,7 @@ pub async fn project_new(
         .map_err(|e| napi::Error::from_reason(PrettyPrintError(&e).to_string()))?;
 
     turbo_tasks.spawn_once_task(async move {
-        benchmark_file_io(container.project().node_root())
+        benchmark_file_io((*container.project().node_root().await?).clone())
             .await
             .inspect_err(|err| tracing::warn!(%err, "failed to benchmark file IO"))
     });
@@ -1270,12 +1270,17 @@ pub async fn get_source_map_rope(
         return Ok(OptionStringifiedSourceMap::none());
     };
 
-    let server_path = container.project().node_root().join(chunk_base.into());
+    let server_path = container
+        .project()
+        .node_root()
+        .await?
+        .join(chunk_base.into())?;
 
     let client_path = container
         .project()
         .client_relative_path()
-        .join(chunk_base.into());
+        .await?
+        .join(chunk_base.into())?;
 
     let mut map = container.get_source_map(server_path, module.clone());
 
@@ -1354,8 +1359,12 @@ pub async fn project_trace_source(
                 }
             };
 
-            let project_root_uri =
-                uri_from_file(project.container.project().project_root_path(), None).await? + "/";
+            let project_root_uri = uri_from_file(
+                (*project.container.project().project_root_path().await?).clone(),
+                None,
+            )
+            .await?
+                + "/";
             let (file, original_file, is_internal) = if let Some(source_file) =
                 original_file.strip_prefix(&project_root_uri)
             {
@@ -1423,9 +1432,11 @@ pub async fn project_get_source_for_asset(
                 .container
                 .project()
                 .project_path()
+                .await?
                 .fs()
                 .root()
-                .join(file_path.clone().into())
+                .await?
+                .join(file_path.clone().into())?
                 .read()
                 .await?;
 
