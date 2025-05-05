@@ -71,7 +71,7 @@ fn condition(root: FileSystemPath) -> Vc<AfterResolvePluginCondition> {
 impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
     #[turbo_tasks::function]
     fn after_resolve_condition(&self) -> Vc<AfterResolvePluginCondition> {
-        condition(*self.root)
+        condition(self.root.clone())
     }
 
     #[turbo_tasks::function]
@@ -254,7 +254,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
             break result_from_original_location;
         };
         let node_resolved = resolve(
-            *self.project_path,
+            self.project_path.clone(),
             reference_type.clone(),
             request,
             node_resolve_options,
