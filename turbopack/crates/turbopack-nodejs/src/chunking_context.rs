@@ -224,13 +224,13 @@ impl ChunkingContext for NodeJsChunkingContext {
     }
 
     #[turbo_tasks::function]
-    fn root_path(&self) -> FileSystemPath {
-        *self.root_path
+    fn root_path(&self) -> Vc<FileSystemPath> {
+        self.root_path.clone().cell()
     }
 
     #[turbo_tasks::function]
-    fn output_root(&self) -> FileSystemPath {
-        *self.output_root
+    fn output_root(&self) -> Vc<FileSystemPath> {
+        self.output_root.clone().cell()
     }
 
     #[turbo_tasks::function]
@@ -255,9 +255,9 @@ impl ChunkingContext for NodeJsChunkingContext {
 
     #[turbo_tasks::function]
     async fn asset_url(&self, ident: FileSystemPath) -> Result<Vc<RcStr>> {
-        let asset_path = ident.await?.to_string();
+        let asset_path = ident.to_string();
         let asset_path = asset_path
-            .strip_prefix(&format!("{}/", self.client_root.await?.path))
+            .strip_prefix(&format!("{}/", self.client_root.path))
             .context("expected client root to contain asset path")?;
 
         Ok(Vc::cell(
@@ -275,8 +275,8 @@ impl ChunkingContext for NodeJsChunkingContext {
     }
 
     #[turbo_tasks::function]
-    async fn chunk_root_path(&self) -> FileSystemPath {
-        *self.chunk_root_path
+    async fn chunk_root_path(&self) -> Vc<FileSystemPath> {
+        self.chunk_root_path.clone().cell()
     }
 
     #[turbo_tasks::function]
@@ -285,13 +285,13 @@ impl ChunkingContext for NodeJsChunkingContext {
         _asset: Option<Vc<Box<dyn Asset>>>,
         ident: Vc<AssetIdent>,
         extension: RcStr,
-    ) -> Result<FileSystemPath> {
-        let root_path = *self.chunk_root_path;
+    ) -> Result<Vc<FileSystemPath>> {
+        let root_path = self.chunk_root_path.clone();
         let name = ident
-            .output_name(*self.root_path, extension)
+            .output_name(self.root_path.clone(), extension)
             .owned()
             .await?;
-        Ok(root_path.join(name))
+        Ok(root_path.join(name)?.cell())
     }
 
     #[turbo_tasks::function]
@@ -325,7 +325,7 @@ impl ChunkingContext for NodeJsChunkingContext {
         &self,
         content_hash: RcStr,
         original_asset_ident: Vc<AssetIdent>,
-    ) -> Result<FileSystemPath> {
+    ) -> Result<Vc<FileSystemPath>> {
         let source_path = original_asset_ident.path().await?;
         let basename = source_path.file_name();
         let asset_path = match source_path.extension_ref() {
@@ -339,7 +339,7 @@ impl ChunkingContext for NodeJsChunkingContext {
                 content_hash = &content_hash[..8]
             ),
         };
-        Ok(self.asset_root_path.join(asset_path.into()))
+        Ok(self.asset_root_path.join(asset_path.into())?.cell())
     }
 
     #[turbo_tasks::function]
