@@ -353,7 +353,7 @@ impl ClientReferenceManifest {
 
             // per layout segment chunks need to be emitted into the manifest too
             for (server_component, client_chunks) in layout_segment_client_chunks.iter() {
-                let server_component_name = server_component
+                let server_component_name: RcStr = server_component
                     .server_path()
                     .await?
                     .with_extension("".into())
