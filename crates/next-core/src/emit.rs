@@ -99,7 +99,7 @@ async fn emit_rebase(
     from: FileSystemPath,
     to: FileSystemPath,
 ) -> Result<()> {
-    let path = rebase(&*asset.path().await?, from, to);
+    let path = rebase(&*asset.path().await?, from, to).await?;
     let content = asset.content();
     let _ = content.resolve().await?.write(path).resolve().await?;
     Ok(())
