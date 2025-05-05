@@ -286,15 +286,15 @@ pub async fn get_edge_chunking_context(
     turbo_source_maps: Vc<bool>,
     no_mangling: Vc<bool>,
 ) -> Result<Vc<Box<dyn ChunkingContext>>> {
-    let output_root = node_root.join("server/edge".into()).to_resolved().await?;
+    let output_root = node_root.join("server/edge".into())?;
     let next_mode = mode.await?;
     let mut builder = BrowserChunkingContext::builder(
         root_path,
         output_root,
         node_root_to_root_path,
         output_root,
-        output_root.join("chunks".into()).to_resolved().await?,
-        output_root.join("assets".into()).to_resolved().await?,
+        output_root.join("chunks".into())?,
+        output_root.join("assets".into())?,
         environment,
         next_mode.runtime_type(),
     )
