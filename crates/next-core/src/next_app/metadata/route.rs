@@ -32,9 +32,9 @@ pub async fn get_app_metadata_route_source(
     is_multi_dynamic: bool,
 ) -> Result<Vc<Box<dyn Source>>> {
     Ok(match metadata {
-        MetadataItem::Static { path } => static_route_source(mode, *path),
+        MetadataItem::Static { path } => static_route_source(mode, path.clone()),
         MetadataItem::Dynamic { path } => {
-            let stem = path.file_stem().await?;
+            let stem = path.file_stem();
             let stem = stem.as_deref().unwrap_or_default();
 
             if stem == "robots" || stem == "manifest" {
