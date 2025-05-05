@@ -227,7 +227,6 @@ struct VisitClientReferenceNode {
 
 #[derive(
     Clone,
-    Copy,
     Eq,
     PartialEq,
     Hash,
