@@ -180,7 +180,7 @@ impl VersionedContentMap {
         path: FileSystemPath,
         section: Option<RcStr>,
     ) -> Result<Vc<OptionStringifiedSourceMap>> {
-        let Some(asset) = &*self.get_asset(path).await? else {
+        let Some(asset) = &*self.get_asset(path.clone()).await? else {
             return Ok(Vc::cell(None));
         };
 
@@ -218,12 +218,15 @@ impl VersionedContentMap {
     pub async fn keys_in_path(&self, root: FileSystemPath) -> Result<Vc<Vec<RcStr>>> {
         let keys = {
             let map = &self.map_path_to_op.get().0;
-            map.keys().copied().collect::<Vec<_>>()
+            map.keys().cloned().collect::<Vec<_>>()
         };
-        let root = &root.await?;
         let keys = keys
             .into_iter()
-            .map(|path| async move { Ok(root.get_path_to(&*path.await?).map(RcStr::from)) })
+            .map(|path| {
+                let root = root.clone();
+
+                async move { Ok(root.get_path_to(&path).map(RcStr::from)) }
+            })
             .try_flat_join()
             .await?;
         Ok(Vc::cell(keys))
