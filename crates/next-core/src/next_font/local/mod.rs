@@ -109,7 +109,6 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                 let font_fallbacks = get_font_fallbacks(lookup_path, options_vc);
                 let properties = get_font_css_properties(options_vc, font_fallbacks).await;
 
-                let lookup_path = lookup_path.to_resolved().await?;
                 if let Err(e) = &properties {
                     for source_error in e.chain() {
                         if let Some(FontError::FontFileNotFound(font_path)) =
@@ -167,13 +166,15 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                         .unwrap_or_else(|| "".to_owned()),
                 );
                 let js_asset = VirtualSource::new(
-                    lookup_path.join(
-                        format!(
-                            "{}.js",
-                            get_request_id(options_vc.font_family(), request_hash).await?
-                        )
-                        .into(),
-                    ),
+                    lookup_path
+                        .join(
+                            format!(
+                                "{}.js",
+                                get_request_id(options_vc.font_family(), request_hash).await?
+                            )
+                            .into(),
+                        )?
+                        .cell(),
                     AssetContent::file(FileContent::Content(file_content.into()).into()),
                 )
                 .to_resolved()
@@ -193,7 +194,7 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                         get_request_id(options.font_family(), request_hash).await?
                     )
                     .into(),
-                );
+                )?;
                 let fallback = get_font_fallbacks(lookup_path, options);
 
                 let stylesheet = build_stylesheet(
@@ -204,7 +205,7 @@ impl BeforeResolvePlugin for NextFontLocalResolvePlugin {
                 .await?;
 
                 let css_asset = VirtualSource::new(
-                    css_virtual_path,
+                    css_virtual_path.cell(),
                     AssetContent::file(FileContent::Content(stylesheet.into()).cell()),
                 )
                 .to_resolved()
