@@ -24,8 +24,8 @@ async fn get_typescript_options(
     Ok(match tsconfig.await.ok().as_deref() {
         Some(FindContextFileResult::Found(path, _)) => read_tsconfigs(
             path.read(),
-            ResolvedVc::upcast(FileSource::new(**path).to_resolved().await?),
-            node_cjs_resolve_options(path.root()),
+            ResolvedVc::upcast(FileSource::new(path.clone()).to_resolved().await?),
+            node_cjs_resolve_options((*path.root().await?).clone()),
         )
         .await
         .ok(),
@@ -124,7 +124,7 @@ pub async fn get_jsx_transform_options(
     is_rsc_context: bool,
     next_config: Vc<NextConfig>,
 ) -> Result<Vc<JsxTransformOptions>> {
-    let tsconfig = get_typescript_options(project_path).await?;
+    let tsconfig = get_typescript_options(project_path.clone()).await?;
 
     let is_react_development = mode.await?.is_react_development();
     let enable_react_refresh = if is_react_development {
