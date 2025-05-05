@@ -448,11 +448,8 @@ pub async fn get_client_chunking_context(
         client_root,
         client_root_to_root_path,
         client_root,
-        client_root
-            .join("static/chunks".into())
-            .to_resolved()
-            .await?,
-        get_client_assets_path(*client_root).to_resolved().await?,
+        client_root.join("static/chunks".into())?,
+        (*get_client_assets_path(*client_root).to_resolved().await?).clone(),
         environment,
         next_mode.runtime_type(),
     )
