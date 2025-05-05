@@ -60,9 +60,9 @@ pub async fn get_swc_ecma_transform_rule_impl(
             // Current resolve will fail with latter.
             let request = Request::parse(Value::new(Pattern::Constant(name.as_str().into())));
             let resolve_options = resolve_options(
-                *project_path,
+                project_path.clone(),
                 ResolveOptionsContext {
-                    enable_node_modules: Some(project_path.root().to_resolved().await?),
+                    enable_node_modules: Some((*project_path.root().await?).clone()),
                     enable_node_native_modules: true,
                     ..Default::default()
                 }
@@ -71,7 +71,7 @@ pub async fn get_swc_ecma_transform_rule_impl(
 
             let plugin_wasm_module_resolve_result = handle_resolve_error(
                 resolve(
-                    *project_path,
+                    project_path.clone(),
                     Value::new(ReferenceType::CommonJs(CommonJsReferenceSubType::Undefined)),
                     request,
                     resolve_options,
@@ -79,7 +79,7 @@ pub async fn get_swc_ecma_transform_rule_impl(
                 .as_raw_module_result(),
                 Value::new(ReferenceType::CommonJs(CommonJsReferenceSubType::Undefined)),
                 // TODO proper error location
-                *project_path,
+                project_path.clone(),
                 request,
                 resolve_options,
                 false,
