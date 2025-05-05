@@ -73,7 +73,10 @@ pub async fn get_app_page_entry(
         writeln!(result, "{import}")?;
     }
 
-    let pages = pages.iter().map(|page| page.to_string()).try_join().await?;
+    let pages = pages
+        .iter()
+        .map(|page| page.to_string())
+        .collect::<Vec<_>>();
 
     let original_name: RcStr = page.to_string().into();
     let pathname: RcStr = AppPath::from(page.clone()).to_string().into();
