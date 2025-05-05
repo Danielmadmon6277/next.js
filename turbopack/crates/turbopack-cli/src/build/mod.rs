@@ -427,12 +427,13 @@ async fn build_internal(
                                                 ecmascript
                                                     .ident()
                                                     .path()
+                                                    .await?
                                                     .file_stem()
                                                     .await?
                                                     .as_deref()
                                                     .unwrap()
                                                     .into(),
-                                            )
+                                            )?
                                             .with_extension("entry.js".into()),
                                     ),
                                     ChunkGroup::Entry(
