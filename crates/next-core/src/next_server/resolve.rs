@@ -103,12 +103,15 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
             return Ok(ResolveResultOption::none());
         }
 
-        let raw_fs_path = &*fs_path.await?;
+        let raw_fs_path = fs_path.clone();
 
         let predicate = self.predicate.await?;
         let must_be_external = match &*predicate {
             ExternalPredicate::AllExcept(exceptions) => {
-                if *condition(*self.root).matches(*lookup_path).await? {
+                if *condition(self.root.clone())
+                    .matches(lookup_path.clone())
+                    .await?
+                {
                     return Ok(ResolveResultOption::none());
                 }
 
@@ -177,7 +180,7 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
                 // for .js extension in cjs context, we need to check the actual module type via
                 // package.json
                 let FindContextFileResult::Found(package_json, _) =
-                    *find_context_file(fs_path.parent(), package_json()).await?
+                    &*find_context_file(fs_path.parent(), package_json()).await?
                 else {
                     // can't find package.json
                     return Ok(FileType::CommonJs);
@@ -276,17 +279,10 @@ impl AfterResolvePlugin for ExternalCjsModulesResolvePlugin {
         };
 
         if result_from_original_location != result {
-            let package_json_file = find_context_file(
-                result.ident().path().parent().resolve().await?,
-                package_json(),
-            );
+            let package_json_file =
+                find_context_file(result.ident().path().await?.parent(), package_json());
             let package_json_from_original_location = find_context_file(
-                result_from_original_location
-                    .ident()
-                    .path()
-                    .parent()
-                    .resolve()
-                    .await?,
+                result_from_original_location.ident().path().await?.parent(),
                 package_json(),
             );
             let FindContextFileResult::Found(package_json_file, _) = *package_json_file.await?
