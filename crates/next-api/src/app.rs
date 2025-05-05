@@ -1164,7 +1164,7 @@ impl AppEndpoint {
             /// All manifests: `Minimal` plus client-references, next-dynamic, ...
             Full,
         }
-        let (process_client_assets, process_ssr, emit_manifests) = match this.ty {
+        let (process_client_assets, process_ssr, emit_manifests) = match &this.ty {
             AppEndpointType::Page { ty, .. } => (
                 true,
                 matches!(ty, AppPageEndpointType::Html),
@@ -1436,7 +1436,7 @@ impl AppEndpoint {
             .app_entry_chunks(
                 *client_references,
                 *server_action_manifest_loader,
-                server_path,
+                server_path.clone(),
                 process_client_assets,
                 *module_graphs.full,
             )
@@ -1456,7 +1456,7 @@ impl AppEndpoint {
             let entry_manifest =
                 ClientReferenceManifest::build_output(ClientReferenceManifestOptions {
                     node_root: node_root.clone(),
-                    client_relative_path,
+                    client_relative_path: client_relative_path.clone(),
                     entry_name: app_entry.original_name.clone(),
                     client_references,
                     client_references_chunks,
