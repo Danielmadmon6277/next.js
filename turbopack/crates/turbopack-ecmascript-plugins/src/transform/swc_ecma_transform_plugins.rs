@@ -227,7 +227,7 @@ impl CustomTransformer for SwcEcmaTransformPluginsTransformer {
             use turbopack_core::issue::IssueExt;
 
             UnsupportedSwcEcmaTransformPluginsIssue {
-                file_path: ctx.file_path,
+                file_path: ctx.file_path.clone(),
             }
             .resolved_cell()
             .emit();
