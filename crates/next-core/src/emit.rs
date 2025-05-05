@@ -3,7 +3,7 @@ use rustc_hash::FxHashSet;
 use tracing::Instrument;
 use turbo_tasks::{
     graph::{AdjacencyMap, GraphTraversal},
-    ResolvedVc, TryFlatJoinIterExt, ValueToString, Vc,
+    ResolvedVc, TryFlatJoinIterExt, Vc,
 };
 use turbo_tasks_fs::{rebase, FileSystemPath};
 use turbopack_core::{
