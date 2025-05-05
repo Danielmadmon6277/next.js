@@ -1215,13 +1215,14 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         } = &*global_metadata.await?;
 
         for meta in favicon.iter().chain(robots.iter()).chain(manifest.iter()) {
-            let app_page = app_page.clone_push_str(&get_metadata_route_name(*meta).await?)?;
+            let app_page =
+                app_page.clone_push_str(&get_metadata_route_name(meta.clone()).await?)?;
 
             add_app_metadata_route(
                 app_dir.clone(),
                 &mut result,
                 normalize_metadata_route(app_page)?,
-                *meta,
+                meta.clone(),
             );
         }
 
@@ -1273,8 +1274,8 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                             segment: "__PAGE__".into(),
                             parallel_routes: FxIndexMap::default(),
                             modules: AppDirModules {
-                                page: match modules.not_found {
-                                    Some(v) => Some(v),
+                                page: match &modules.not_found {
+                                    Some(v) => Some(v.clone()),
                                     None => Some(get_next_package(app_dir.clone())
                                         .await?
                                         .join("dist/client/components/not-found-error.js".into())?),
@@ -1298,7 +1299,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                 .clone_push_str("_not-found")?
                 .complete(PageType::Page)?;
 
-            add_app_page(app_dir, &mut result, app_page, not_found_tree);
+            add_app_page(app_dir.clone(), &mut result, app_page, not_found_tree);
         }
     }
 
@@ -1306,57 +1307,60 @@ async fn directory_tree_to_entrypoints_internal_untraced(
     let directory_name = &directory_name;
     let subdirectories = subdirectories
         .iter()
-        .map(|(subdir_name, &subdirectory)| async move {
-            let mut child_app_page = app_page.clone();
-            let mut illegal_path = None;
+        .map(|(subdir_name, &subdirectory)| {
+            let app_dir = app_dir.clone();
+            async move {
+                let mut child_app_page = app_page.clone();
+                let mut illegal_path = None;
 
-            // When constructing the app_page fails (e. g. due to limitations of the order),
-            // we only want to emit the error when there are actual pages below that
-            // directory.
-            if let Err(e) = child_app_page.push_str(subdir_name) {
-                illegal_path = Some(e);
-            }
-
-            let map = directory_tree_to_entrypoints_internal(
-                app_dir.clone(),
-                global_metadata,
-                subdir_name.clone(),
-                *subdirectory,
-                child_app_page.clone(),
-                *root_layouts,
-            )
-            .await?;
-
-            if let Some(illegal_path) = illegal_path {
-                if !map.is_empty() {
-                    return Err(illegal_path);
+                // When constructing the app_page fails (e. g. due to limitations of the order),
+                // we only want to emit the error when there are actual pages below that
+                // directory.
+                if let Err(e) = child_app_page.push_str(subdir_name) {
+                    illegal_path = Some(e);
                 }
-            }
 
-            let mut loader_trees = Vec::new();
+                let map = directory_tree_to_entrypoints_internal(
+                    app_dir.clone(),
+                    global_metadata,
+                    subdir_name.clone(),
+                    *subdirectory,
+                    child_app_page.clone(),
+                    *root_layouts,
+                )
+                .await?;
 
-            for (_, entrypoint) in map.iter() {
-                if let Entrypoint::AppPage {
-                    ref pages,
-                    loader_tree: _,
-                } = *entrypoint
-                {
-                    for page in pages {
-                        let app_path = AppPath::from(page.clone());
-
-                        let loader_tree = directory_tree_to_loader_tree(
-                            app_dir.clone(),
-                            global_metadata,
-                            directory_name.clone(),
-                            directory_tree_vc,
-                            app_page.clone(),
-                            app_path,
-                        );
-                        loader_trees.push(loader_tree);
+                if let Some(illegal_path) = illegal_path {
+                    if !map.is_empty() {
+                        return Err(illegal_path);
                     }
                 }
+
+                let mut loader_trees = Vec::new();
+
+                for (_, entrypoint) in map.iter() {
+                    if let Entrypoint::AppPage {
+                        ref pages,
+                        loader_tree: _,
+                    } = *entrypoint
+                    {
+                        for page in pages {
+                            let app_path = AppPath::from(page.clone());
+
+                            let loader_tree = directory_tree_to_loader_tree(
+                                app_dir.clone(),
+                                global_metadata,
+                                directory_name.clone(),
+                                directory_tree_vc,
+                                app_page.clone(),
+                                app_path,
+                            );
+                            loader_trees.push(loader_tree);
+                        }
+                    }
+                }
+                Ok((map, loader_trees))
             }
-            Ok((map, loader_trees))
         })
         .try_join()
         .await?;
@@ -1364,7 +1368,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
     for (map, loader_trees) in subdirectories.iter() {
         let mut i = 0;
         for (_, entrypoint) in map.iter() {
-            match *entrypoint {
+            match entrypoint {
                 Entrypoint::AppPage {
                     ref pages,
                     loader_tree: _,
@@ -1374,7 +1378,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                         i += 1;
 
                         add_app_page(
-                            app_dir,
+                            app_dir.clone(),
                             &mut result,
                             page.clone(),
                             loader_tree
@@ -1387,10 +1391,21 @@ async fn directory_tree_to_entrypoints_internal_untraced(
                     path,
                     root_layouts,
                 } => {
-                    add_app_route(app_dir, &mut result, page.clone(), path, root_layouts);
+                    add_app_route(
+                        app_dir.clone(),
+                        &mut result,
+                        page.clone(),
+                        path.clone(),
+                        *root_layouts,
+                    );
                 }
                 Entrypoint::AppMetadata { ref page, metadata } => {
-                    add_app_metadata_route(app_dir, &mut result, page.clone(), metadata);
+                    add_app_metadata_route(
+                        app_dir.clone(),
+                        &mut result,
+                        page.clone(),
+                        metadata.clone(),
+                    );
                 }
             }
         }
@@ -1430,9 +1445,9 @@ pub async fn get_global_metadata(
         };
 
         if dynamic {
-            *entry = Some(MetadataItem::Dynamic { path: file });
+            *entry = Some(MetadataItem::Dynamic { path: file.clone() });
         } else {
-            *entry = Some(MetadataItem::Static { path: file });
+            *entry = Some(MetadataItem::Static { path: file.clone() });
         }
         // TODO(WEB-952) handle symlinks in app dir
     }
@@ -1466,7 +1481,7 @@ impl Issue for DirectoryTreeIssue {
 
     #[turbo_tasks::function]
     fn file_path(&self) -> Vc<FileSystemPath> {
-        *self.app_dir
+        self.app_dir.clone().cell()
     }
 
     #[turbo_tasks::function]
