@@ -133,12 +133,16 @@ pub async fn get_server_resolve_options_context(
     next_config: Vc<NextConfig>,
     execution_context: Vc<ExecutionContext>,
 ) -> Result<Vc<ResolveOptionsContext>> {
-    let next_server_import_map =
-        get_next_server_import_map(*project_path, ty, next_config, execution_context)
-            .to_resolved()
-            .await?;
+    let next_server_import_map = get_next_server_import_map(
+        project_path.clone(),
+        ty.clone(),
+        next_config,
+        execution_context,
+    )
+    .to_resolved()
+    .await?;
     let foreign_code_context_condition =
-        foreign_code_context_condition(next_config, project_path).await?;
+        foreign_code_context_condition(next_config, project_path.clone()).await?;
     let root_dir = project_path.root().to_resolved().await?;
     let module_feature_report_resolve_plugin = ModuleFeatureReportResolvePlugin::new(*project_path)
         .to_resolved()
@@ -147,7 +151,7 @@ pub async fn get_server_resolve_options_context(
         .to_resolved()
         .await?;
     let invalid_styled_jsx_client_only_resolve_plugin =
-        get_invalid_styled_jsx_resolve_plugin(project_path)
+        get_invalid_styled_jsx_resolve_plugin(project_path.clone())
             .to_resolved()
             .await?;
 
