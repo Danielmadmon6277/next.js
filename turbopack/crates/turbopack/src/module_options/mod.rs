@@ -635,7 +635,7 @@ impl ModuleOptions {
                             RuleCondition::ResourceBasePathGlob(Glob::new(glob.clone()).await?)
                         } else {
                             RuleCondition::ResourcePathGlob {
-                                base: execution_context.project_path().await?,
+                                base: (*execution_context.project_path().await?).clone(),
                                 glob: Glob::new(glob.clone()).await?,
                             }
                         },
