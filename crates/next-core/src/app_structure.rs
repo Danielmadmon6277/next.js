@@ -1490,7 +1490,7 @@ impl Issue for DirectoryTreeIssue {
     }
 
     #[turbo_tasks::function]
-    fn file_path(&self) -> FileSystemPath {
+    fn file_path(&self) -> Vc<FileSystemPath> {
         *self.app_dir
     }
 
