@@ -91,7 +91,7 @@ impl CustomTransformer for NextJsReactServerComponents {
             }),
             match self.app_dir {
                 None => None,
-                Some(path) => Some(path.await?.path.clone().into()),
+                Some(path) => Some(path.path.clone().into()),
             },
         );
 
