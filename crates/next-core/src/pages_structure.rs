@@ -317,7 +317,7 @@ async fn get_pages_structure_for_directory(
     page_extensions: Vc<Vec<RcStr>>,
 ) -> Result<Vc<PagesDirectoryStructure>> {
     let span = {
-        let path = project_path.to_string().await?.to_string();
+        let path = project_path.to_string();
         tracing::info_span!("analyse pages structure", name = path)
     };
     async move {
@@ -335,10 +335,10 @@ async fn get_pages_structure_for_directory(
                         };
                         let item_next_router_path = match basename {
                             "index" => next_router_path,
-                            _ => next_router_path.join(basename.into()),
+                            _ => next_router_path.join(basename.into())?,
                         };
-                        let base_path = project_path.join(name.clone());
-                        let item_original_name = next_router_path.join(basename.into());
+                        let base_path = project_path.join(name.clone())?;
+                        let item_original_name = next_router_path.join(basename.into())?;
                         items.push((
                             basename,
                             PagesStructureItem::new(
@@ -354,8 +354,8 @@ async fn get_pages_structure_for_directory(
                         children.push((
                             name,
                             get_pages_structure_for_directory(
-                                **dir_project_path,
-                                next_router_path.join(name.clone()),
+                                dir_project_path.clone(),
+                                next_router_path.join(name.clone())?,
                                 position + 1,
                                 page_extensions,
                             ),
