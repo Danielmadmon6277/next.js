@@ -1,3 +1,4 @@
+use anyhow::Result;
 use indoc::formatdoc;
 use turbo_rcstr::RcStr;
 use turbo_tasks::{fxindexmap, ResolvedVc, Value, Vc};
