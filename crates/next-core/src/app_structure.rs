@@ -1140,9 +1140,9 @@ async fn directory_tree_to_entrypoints_internal_untraced(
     // Route can have its own segment config, also can inherit from the layout root
     // segment config. https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes#segment-runtime-option
     // Pass down layouts from each tree to apply segment config when adding route.
-    let root_layouts = if let Some(layout) = modules.layout {
+    let root_layouts = if let Some(layout) = &modules.layout {
         let mut layouts = root_layouts.owned().await?;
-        layouts.push(layout);
+        layouts.push(layout.clone());
         ResolvedVc::cell(layouts)
     } else {
         root_layouts
@@ -1162,19 +1162,19 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         .await?;
 
         add_app_page(
-            app_dir,
+            app_dir.clone(),
             &mut result,
             app_page.complete(PageType::Page)?,
             loader_tree.context("loader tree should be created for a page/default")?,
         );
     }
 
-    if let Some(route) = modules.route {
+    if let Some(route) = &modules.route {
         add_app_route(
-            app_dir,
+            app_dir.clone(),
             &mut result,
             app_page.complete(PageType::Route)?,
-            route,
+            route.clone(),
             root_layouts,
         );
     }
@@ -1196,10 +1196,10 @@ async fn directory_tree_to_entrypoints_internal_untraced(
         .chain(twitter.iter().cloned().map(MetadataItem::from))
         .chain(open_graph.iter().cloned().map(MetadataItem::from))
     {
-        let app_page = app_page.clone_push_str(&get_metadata_route_name(meta).await?)?;
+        let app_page = app_page.clone_push_str(&get_metadata_route_name(meta.clone()).await?)?;
 
         add_app_metadata_route(
-            app_dir,
+            app_dir.clone(),
             &mut result,
             normalize_metadata_route(app_page)?,
             meta,
@@ -1218,7 +1218,7 @@ async fn directory_tree_to_entrypoints_internal_untraced(
             let app_page = app_page.clone_push_str(&get_metadata_route_name(*meta).await?)?;
 
             add_app_metadata_route(
-                app_dir,
+                app_dir.clone(),
                 &mut result,
                 normalize_metadata_route(app_page)?,
                 *meta,
