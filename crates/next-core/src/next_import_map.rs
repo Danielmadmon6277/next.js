@@ -98,18 +98,18 @@ pub async fn get_next_client_import_map(
 
     insert_next_shared_aliases(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         execution_context,
         next_config,
         false,
     )
     .await?;
 
-    insert_optimized_module_aliases(&mut import_map, project_path).await?;
+    insert_optimized_module_aliases(&mut import_map, project_path.clone()).await?;
 
     insert_alias_option(
         &mut import_map,
-        project_path,
+        project_path.clone(),
         next_config.resolve_alias_options(),
         ["browser"],
     )
@@ -131,42 +131,42 @@ pub async fn get_next_client_import_map(
             import_map.insert_exact_alias(
                 "react",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react{react_flavor}"),
                 ),
             );
             import_map.insert_wildcard_alias(
                 "react/",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react{react_flavor}/*"),
                 ),
             );
             import_map.insert_exact_alias(
                 "react-dom",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react-dom{react_flavor}"),
                 ),
             );
             import_map.insert_exact_alias(
                 "react-dom/static",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     "next/dist/compiled/react-dom-experimental/static",
                 ),
             );
             import_map.insert_exact_alias(
                 "react-dom/static.edge",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     "next/dist/compiled/react-dom-experimental/static.edge",
                 ),
             );
             import_map.insert_exact_alias(
                 "react-dom/static.browser",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     "next/dist/compiled/react-dom-experimental/static.browser",
                 ),
             );
@@ -174,47 +174,50 @@ pub async fn get_next_client_import_map(
             import_map.insert_exact_alias(
                 "react-dom/client",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react-dom{react_flavor}/{react_client_package}"),
                 ),
             );
             import_map.insert_wildcard_alias(
                 "react-dom/",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react-dom{react_flavor}/*"),
                 ),
             );
             import_map.insert_wildcard_alias(
                 "react-server-dom-webpack/",
-                request_to_import_mapping(app_dir, "react-server-dom-turbopack/*"),
+                request_to_import_mapping(app_dir.clone(), "react-server-dom-turbopack/*"),
             );
             import_map.insert_wildcard_alias(
                 "react-server-dom-turbopack/",
                 request_to_import_mapping(
-                    app_dir,
+                    app_dir.clone(),
                     &format!("next/dist/compiled/react-server-dom-turbopack{react_flavor}/*"),
                 ),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/head",
-                request_to_import_mapping(project_path, "next/dist/client/components/noop-head"),
+                request_to_import_mapping(
+                    project_path.clone(),
+                    "next/dist/client/components/noop-head",
+                ),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/dynamic",
-                request_to_import_mapping(project_path, "next/dist/shared/lib/app-dynamic"),
+                request_to_import_mapping(project_path.clone(), "next/dist/shared/lib/app-dynamic"),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/link",
-                request_to_import_mapping(project_path, "next/dist/client/app-dir/link"),
+                request_to_import_mapping(project_path.clone(), "next/dist/client/app-dir/link"),
             );
             insert_exact_alias_or_js(
                 &mut import_map,
                 "next/form",
-                request_to_import_mapping(project_path, "next/dist/client/app-dir/form"),
+                request_to_import_mapping(project_path.clone(), "next/dist/client/app-dir/form"),
             );
         }
         ClientContextType::Fallback => {}
@@ -240,7 +243,7 @@ pub async fn get_next_client_import_map(
             for (original, alias) in NEXT_ALIASES {
                 import_map.insert_exact_alias(
                     format!("node:{original}"),
-                    request_to_import_mapping(project_path, alias),
+                    request_to_import_mapping(project_path.clone(), alias),
                 );
             }
         }
