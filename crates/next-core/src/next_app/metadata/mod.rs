@@ -84,8 +84,8 @@ fn match_metadata_file<'a>(
 }
 
 pub(crate) async fn get_content_type(path: FileSystemPath) -> Result<String> {
-    let stem = &*path.file_stem().await?;
-    let ext = &*path.extension().await?;
+    let stem = &*path.file_stem();
+    let ext = &*path.extension();
 
     let name = stem.as_deref().unwrap_or_default();
     let mut ext = ext.as_str();
